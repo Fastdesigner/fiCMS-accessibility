@@ -1,0 +1,13 @@
+{
+  "id": "fiCMS-accessibility",
+  "name": "fiCMS Accessibility",
+  "type": "thirdparty",
+  "system": false,
+  "description": "Automated accessibility audits, health scores and reports for fiCMS.",
+  "version": "0.1.0",
+  "autoload": {
+    "psr-4": {
+      "accessibility\\": "src/"
+    }
+  }
+}
