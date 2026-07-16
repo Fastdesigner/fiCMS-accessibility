@@ -1,5 +1,9 @@
 <?php
 
+if (!file_exists(DESIGNSYSTEM.'/assets/js/admin/sys.js')) {
+	require PLUGINPATH.'/fiCMS-accessibility/deprecated/settings/info/accessibility.php';
+	return;
+}
 if (!$site['onsite']) return;
 
 if (isset($_POST['accessibility_result'])) {
@@ -17,42 +21,30 @@ if (isset($_POST['accessibility_result'])) {
 
 if ($html['is_superviser'] != 1 || isset($_GET[$settings['key'].'action'])) return;
 
-$accessibility = ['output'=>['lists'=>[]],'info'=>[]];
+$accessibility = [];
 if (!\accessibility\License::allowed()) {
-	create__limit_output($settings,'accessibility',$user['language']);
+	\ficms\Ui::emitLimit($settings,'accessibility',$user['language']);
 	unset($accessibility);
 	return;
 }
-if (!isset($tables[\accessibility\Config::TABLE])) {
-	unset($accessibility);
-	return;
-}
+if (!isset($tables[\accessibility\Config::TABLE])) return;
 
-$accessibility['overview'] = \accessibility\Overview::current();
-$accessibility['metrics'] = \accessibility\Overview::metrics($accessibility['overview'],$user['language']);
-$accessibility['output']['lists'][$settings['key'].'Content'] = ['id'=>$settings['key'].'Content','items'=>[]];
-$accessibility['info'][] = [
-	'type'=>'statistics','chart'=>'pie',
-	'attributes'=>['data-span'=>'all','data-style'=>'progress','data-value'=>round($accessibility['overview']['score']),'data-label'=>language__get($user['language'],'_accessibility_score')],
-	'values'=>$accessibility['metrics']
-];
-foreach ($accessibility['overview']['total'] as $key => $value) $accessibility['info'][] = ['id'=>$settings['key'].'_accessibility_'.$key,'type'=>'statistics','chart'=>'info','values'=>['value'=>(int) $value,'label'=>language__get($user['language'],'_accessibility_'.$key)]];
-$accessibility['output']['lists'][$settings['key'].'Content']['items'][] = ['id'=>$settings['key'].'Info','classes'=>['statistics__wrapper'],'items'=>$accessibility['info']];
-$accessibility['items'] = \accessibility\Overview::settingsList($accessibility['overview'],$user['language']);
-if (!$accessibility['items']) $accessibility['items'][] = ['id'=>$settings['key'].'-noresult','tag'=>'font','description'=>language__get($user['language'],'_accessibility_no_results_yet')];
-$accessibility['output']['lists'][$settings['key'].'Content']['items'][] = ['id'=>$settings['key'].'Result','classes'=>['forms__wrapper'],'items'=>$accessibility['items']];
-$accessibility['output']['lists'][$settings['key'].'Content']['items'][] = [
-	'id'=>$settings['key'].'Summary','tag'=>'font',
-	'description'=>language__get_parsed($user['language'],'_accessibility_summary',[
-		'pages'=>$accessibility['overview']['count'],
-		'last'=>$accessibility['overview']['last'] ? format__date_relative($accessibility['overview']['last']) : '-'
-	])
-];
-
-foreach ($accessibility['output'] as $key => $value) {
-	if (!$value) continue;
-	if (!isset($settings['output'][$key])) $settings['output'][$key] = [];
-	$settings['output'][$key] = array_merge($settings['output'][$key],$value);
-}
+$accessibility['assessment'] = \accessibility\Overview::current();
+$accessibility['ui'] = new \ficms\Ui($settings['key'],'accessibility',$user['language']);
+$accessibility['metrics'] = $accessibility['ui']->listing('metrics',['kind'=>'statistics']);
+$accessibility['metrics']->statistics('score','pie',\accessibility\Overview::metrics($accessibility['assessment'],$user['language']),['attrs'=>[
+	'data-span'=>'all',
+	'data-style'=>'progress',
+	'data-value'=>round($accessibility['assessment']['score']),
+	'data-label'=>language__get($user['language'],'_accessibility_score')
+]]);
+foreach ($accessibility['assessment']['total'] as $key => $value) $accessibility['metrics']->statistics($key,'info',['value'=>(int) $value,'label'=>language__get($user['language'],'_accessibility_'.$key)],['id'=>$settings['key'].'_accessibility_'.$key]);
+$accessibility['findings'] = $accessibility['ui']->listing('findings',['kind'=>'wrapper']);
+if ($accessibility['ui']->assessmentFindings($accessibility['findings'],$accessibility['assessment']) == 0) $accessibility['findings']->text('empty',language__get($user['language'],'_accessibility_no_results_yet'));
+$accessibility['ui']->text('summary',language__get_parsed($user['language'],'_accessibility_summary',[
+	'pages'=>$accessibility['assessment']['count'],
+	'last'=>$accessibility['assessment']['last'] ? format__date_relative($accessibility['assessment']['last']) : '-'
+]),['id'=>$settings['key'].'Summary']);
+$accessibility['ui']->emit($settings);
 
 unset($accessibility);

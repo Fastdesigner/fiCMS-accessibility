@@ -2,13 +2,6 @@
 
 $test = ['mysql_result'=>false,'mysql_check'=>[],'last_query'=>'','passed'=>0];
 
-function scores__calc(array $scores, array $weights): float {
-	$product = 1;
-	$total = array_sum($weights);
-	foreach (array_values($scores) as $key => $score) $product *= pow(max(0.01,$score),$weights[$key]);
-	return ($total > 0) ? round(pow($product,1 / $total) * 100) : 100;
-}
-
 function mysqlFetchAssoc($query) {
 	global $test;
 	$test['last_query'] = is_string($query) ? $query : '';
@@ -31,6 +24,7 @@ function expect($condition, string $message): void {
 	$test['passed']++;
 }
 
+require_once(dirname(__DIR__,2).'/fiCMS-ui/include/classes/fiCMS/src/Assessment.php');
 foreach (['Config','Score','Result','SessionContext','Repository','Overview','Installer'] as $test['class']) require_once(dirname(__DIR__).'/src/'.$test['class'].'.php');
 
 $site = ['ficms_version'=>'test'];
