@@ -48,35 +48,30 @@ $accessibility['overview_tab']->text('summary',language__get_parsed($user['langu
 ]),['id'=>$settings['key'].'Summary','html'=>true]);
 
 $accessibility['statistics_tab'] = $accessibility['ui']->tab('statistics',['label'=>language__get($user['language'],'_accessibility_tab_statistics')]);
-$accessibility['statistics_synced'] = \accessibility\Statistics::sync();
+\accessibility\Statistics::sync();
 $accessibility['statistics_data'] = \accessibility\Statistics::data();
 if (!$accessibility['statistics_data']['days']) {
 	$accessibility['statistics_tab']->text('statistics-empty',language__get($user['language'],'_accessibility_statistics_empty'));
 } else {
 	$accessibility['statistics'] = $accessibility['statistics_tab']->listing('statistics',['kind'=>'statistics']);
-	$accessibility['score_labels'] = ['score'=>'_accessibility_score'];
-	foreach (\accessibility\Config::CATEGORIES as $accessibility['category']) $accessibility['score_labels'][$accessibility['category']] = '_accessibility_'.$accessibility['category'];
-	$accessibility['statistics']->statistics('score-history','graph',statistics__format_graph(
+	$accessibility['statistics']->statistics('report-history','graph',statistics__format_graph(
 		$user['language'],
-		\accessibility\Statistics::scoreGraph($user['language']),
+		\accessibility\Statistics::reportGraph($user['language']),
+		['reports'=>'_accessibility_statistics_reports'],
+		['gridLines'=>4]
+	),['attrs'=>['data-span'=>'all','data-label'=>language__get($user['language'],'_accessibility_statistics_report_history')]]);
+	$accessibility['score_labels'] = [];
+	foreach (\accessibility\Config::CATEGORIES as $accessibility['category']) $accessibility['score_labels'][$accessibility['category']] = '_accessibility_'.$accessibility['category'];
+	$accessibility['statistics']->statistics('category-history','graph',statistics__format_graph(
+		$user['language'],
+		\accessibility\Statistics::categoryGraph($user['language']),
 		$accessibility['score_labels'],
 		['max'=>100,'unit'=>'%','legend'=>true,'gridLines'=>4]
-	),['attrs'=>['data-span'=>'all','data-label'=>language__get($user['language'],'_accessibility_statistics_score_history')]]);
-	$accessibility['statistics']->statistics('activity-history','graph',statistics__format_graph(
-		$user['language'],
-		\accessibility\Statistics::activityGraph($user['language']),
-		['audits'=>'_accessibility_statistics_audits','checks'=>'_accessibility_statistics_checks','check_runs'=>'_accessibility_statistics_check_runs'],
-		['legend'=>true,'gridLines'=>4]
-	),['attrs'=>['data-span'=>'all','data-label'=>language__get($user['language'],'_accessibility_statistics_activity')]]);
-	foreach ($accessibility['statistics_data']['totals'] as $key => $value) $accessibility['statistics']->statistics('total-'.$key,'info',[
-		'value'=>(int) $value,
-		'label'=>language__get($user['language'],'_accessibility_statistics_'.$key)
-	]);
+	),['attrs'=>['data-span'=>'all','data-label'=>language__get($user['language'],'_accessibility_statistics_category_history')]]);
 	$accessibility['page_scores'] = [];
 	foreach (\accessibility\Statistics::pageScores() as $accessibility['page_score']) $accessibility['page_scores'][] = [
 		'label'=>$accessibility['page_score']['label'],
 		'value'=>$accessibility['page_score']['value'],
-		'sub'=>language__get_parsed($user['language'],'_accessibility_statistics_page_last',['last'=>format__date_relative($accessibility['page_score']['last'])]),
 		'color'=>$accessibility['page_score']['value'] < 60 ? '#c62828' : ($accessibility['page_score']['value'] < 80 ? '#d99e3a' : '#6aa84f')
 	];
 	if ($accessibility['page_scores']) $accessibility['statistics']->statistics('page-scores','bars',['max'=>100,'rows'=>$accessibility['page_scores']],['attrs'=>[

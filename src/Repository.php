@@ -33,7 +33,6 @@ class Repository {
 			'success'=>(int) $aggregate['success'],
 			'warning'=>(int) $aggregate['warning'],
 			'error'=>(int) $aggregate['error'],
-			'check_runs'=>(int) ($envelope['audit']['stats']['checkRuns'] ?? 0),
 			'audit_time'=>$timestamp,
 			'result_file'=>$resultFile
 		];

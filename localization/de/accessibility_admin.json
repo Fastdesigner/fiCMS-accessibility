@@ -109,11 +109,8 @@
     "_accessibility_tab_overview": "Übersicht",
     "_accessibility_tab_statistics": "Statistiken",
     "_accessibility_statistics_empty": "Sobald neue Prüfungen vorliegen, wird hier die tägliche Entwicklung angezeigt.",
-    "_accessibility_statistics_score_history": "Entwicklung der Scores",
-    "_accessibility_statistics_activity": "Durchgeführte Prüfungen",
-    "_accessibility_statistics_audits": "Audits",
-    "_accessibility_statistics_checks": "Bewertete Prüfungen",
-    "_accessibility_statistics_check_runs": "Ausgeführte Einzelprüfungen",
-    "_accessibility_statistics_page_scores": "Gesamtscore der einzelnen Seiten",
-    "_accessibility_statistics_page_last": "Zuletzt geprüft: %last%"
+    "_accessibility_statistics_report_history": "Entstandene Reports",
+    "_accessibility_statistics_reports": "Reports",
+    "_accessibility_statistics_category_history": "Entwicklung der Teilbewertungen",
+    "_accessibility_statistics_page_scores": "Scores der geprüften Unterseiten"
 }

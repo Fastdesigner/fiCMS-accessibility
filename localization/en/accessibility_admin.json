@@ -109,11 +109,8 @@
     "_accessibility_tab_overview": "Overview",
     "_accessibility_tab_statistics": "Statistics",
     "_accessibility_statistics_empty": "The daily development will appear here as soon as new audits are available.",
-    "_accessibility_statistics_score_history": "Score development",
-    "_accessibility_statistics_activity": "Completed checks",
-    "_accessibility_statistics_audits": "Audits",
-    "_accessibility_statistics_checks": "Scored checks",
-    "_accessibility_statistics_check_runs": "Executed individual checks",
-    "_accessibility_statistics_page_scores": "Overall score by page",
-    "_accessibility_statistics_page_last": "Last checked: %last%"
+    "_accessibility_statistics_report_history": "Generated reports",
+    "_accessibility_statistics_reports": "Reports",
+    "_accessibility_statistics_category_history": "Category score development",
+    "_accessibility_statistics_page_scores": "Scores of audited pages"
 }

@@ -109,11 +109,8 @@
     "_accessibility_tab_overview": "Resumen",
     "_accessibility_tab_statistics": "Estadísticas",
     "_accessibility_statistics_empty": "La evolución diaria aparecerá aquí cuando haya nuevas auditorías.",
-    "_accessibility_statistics_score_history": "Evolución de las puntuaciones",
-    "_accessibility_statistics_activity": "Comprobaciones realizadas",
-    "_accessibility_statistics_audits": "Auditorías",
-    "_accessibility_statistics_checks": "Comprobaciones evaluadas",
-    "_accessibility_statistics_check_runs": "Comprobaciones individuales ejecutadas",
-    "_accessibility_statistics_page_scores": "Puntuación general por página",
-    "_accessibility_statistics_page_last": "Última comprobación: %last%"
+    "_accessibility_statistics_report_history": "Informes generados",
+    "_accessibility_statistics_reports": "Informes",
+    "_accessibility_statistics_category_history": "Evolución de las puntuaciones parciales",
+    "_accessibility_statistics_page_scores": "Puntuaciones de las páginas auditadas"
 }

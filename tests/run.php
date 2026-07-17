@@ -194,14 +194,23 @@ expect($test['overview']['findings']['error']['_accessibility_media_alt_missing'
 
 $test['statistics'] = \accessibility\Statistics::data();
 $test['today'] = $test['statistics']['days'][(string) $_SERVER['today']];
-expect($test['today']['score'] === 89 && $test['today']['media_alt'] === 50,'Daily score statistics are invalid');
-expect($test['today']['audits'] === 2 && $test['today']['checks'] === 12 && $test['today']['check_runs'] === 80,'Daily audit activity is invalid');
-expect($test['statistics']['totals'] === ['audits'=>2,'check_runs'=>80,'checks'=>12],'Statistics totals are invalid');
+expect($test['today']['media_alt'] === 50 && !isset($test['today']['score']),'Daily category statistics are invalid');
+expect($test['today']['reports'] === 2 && !isset($test['today']['checks'],$test['today']['check_runs']),'Daily report count is invalid');
+expect(!isset($test['statistics']['totals']),'Obsolete statistics totals were retained');
 $test['pages'] = \accessibility\Statistics::pageScores();
-expect(count($test['pages']) === 1 && $test['pages'][0]['value'] === 89,'Per-page score statistics are invalid');
-expect(count(\accessibility\Statistics::scoreGraph('de')['points']) === 1 && count(\accessibility\Statistics::activityGraph('de')['points']) === 1,'Statistics graphs are invalid');
+expect(count($test['pages']) === 1 && $test['pages'][0]['value'] === 89 && array_keys($test['pages'][0]) === ['label','value'],'Per-page score statistics are invalid');
+$test['report_graph'] = \accessibility\Statistics::reportGraph('de');
+$test['category_graph'] = \accessibility\Statistics::categoryGraph('de');
+expect(array_keys($test['report_graph']['series']) === ['reports'] && $test['report_graph']['points'][0]['data'] === ['reports'=>2],'Report graph is invalid');
+expect(array_keys($test['category_graph']['series']) === \accessibility\Config::CATEGORIES && count($test['category_graph']['points']) === 1,'Category score graph is invalid');
+$test['legacy_statistics'] = \accessibility\Statistics::data();
+$test['legacy_statistics']['days'][(string) $_SERVER['today']]['audits'] = $test['legacy_statistics']['days'][(string) $_SERVER['today']]['reports'];
+unset($test['legacy_statistics']['days'][(string) $_SERVER['today']]['reports']);
+TestFiles::$json[\accessibility\Config::dataPath('statistics.json')] = $test['legacy_statistics'];
+expect(\accessibility\Statistics::reportGraph('de')['points'][0]['data'] === ['reports'=>2],'Legacy audit counts were not mapped to reports');
+expect(\accessibility\Statistics::record() === true,'Legacy daily statistics were not normalized');
 unset(TestFiles::$json[\accessibility\Config::dataPath('statistics.json')]);
-expect(\accessibility\Statistics::sync() === true && \accessibility\Statistics::data()['totals']['audits'] === 2,'Daily statistics were not rebuilt from audit indexes');
+expect(\accessibility\Statistics::sync() === true && \accessibility\Statistics::data()['days'][(string) $_SERVER['today']]['reports'] === 2,'Daily statistics were not rebuilt from audit indexes');
 
 $html = ['is_superviser'=>1];
 $settings = ['key'=>'accessibility','output'=>[]];
@@ -211,16 +220,20 @@ include dirname(__DIR__).'/settings/info/accessibility.php';
 $test['ui'] = $settings['output']['lists']['accessibilityContent'] ?? [];
 expect(($test['ui']['items'][0]['type'] ?? '') === 'tabs' && count($test['ui']['items'][0]['tabs'] ?? []) === 2,'Accessibility admin tabs are invalid');
 $test['statistics_ui'] = $test['ui']['items'][0]['tabs'][1]['items'][0]['items'] ?? [];
-expect(array_column($test['statistics_ui'],'chart') === ['graph','graph','info','info','info','bars'],'Accessibility statistics charts are incomplete');
-expect(($test['statistics_ui'][5]['values']['max'] ?? 0) === 100 && count($test['statistics_ui'][5]['values']['rows'] ?? []) === 1,'Per-page score chart is invalid');
+expect(array_column($test['statistics_ui'],'chart') === ['graph','graph','bars'],'Accessibility statistics charts are invalid');
+expect(array_keys($test['statistics_ui'][0]['values']['series'] ?? []) === ['reports'],'Accessibility report graph contains unrelated series');
+expect(array_keys($test['statistics_ui'][1]['values']['series'] ?? []) === \accessibility\Config::CATEGORIES,'Accessibility category graph contains unrelated series');
+expect(($test['statistics_ui'][2]['values']['max'] ?? 0) === 100 && array_keys($test['statistics_ui'][2]['values']['rows'][0] ?? []) === ['label','value','color'],'Per-page score chart contains unrelated values');
 
 $settings = ['key'=>'accessibility-deprecated','output'=>[]];
 include dirname(__DIR__).'/deprecated/settings/info/accessibility.php';
 $test['deprecated_ui'] = $settings['output']['lists']['accessibility-deprecatedContent']['items'] ?? [];
 expect(($test['deprecated_ui'][0]['attributes']['role'] ?? '') === 'tablist' && array_column($test['deprecated_ui'][0]['items'],'description') === ['de:_accessibility_tab_overview','de:_accessibility_tab_statistics'],'Deprecated accessibility tabs are invalid');
 $test['deprecated_statistics_ui'] = $test['deprecated_ui'][1]['items'][1]['items'][0]['items'] ?? [];
-expect(array_column($test['deprecated_statistics_ui'],'chart') === ['graph','graph','info','info','info','bars'],'Deprecated accessibility statistics charts are incomplete');
-expect(($test['deprecated_statistics_ui'][5]['values']['max'] ?? 0) === 100 && count($test['deprecated_statistics_ui'][5]['values']['rows'] ?? []) === 1,'Deprecated per-page score chart is invalid');
+expect(array_column($test['deprecated_statistics_ui'],'chart') === ['graph','graph','bars'],'Deprecated accessibility statistics charts are invalid');
+expect(array_keys($test['deprecated_statistics_ui'][0]['values']['series'] ?? []) === ['reports'],'Deprecated report graph contains unrelated series');
+expect(array_keys($test['deprecated_statistics_ui'][1]['values']['series'] ?? []) === \accessibility\Config::CATEGORIES,'Deprecated category graph contains unrelated series');
+expect(($test['deprecated_statistics_ui'][2]['values']['max'] ?? 0) === 100 && array_keys($test['deprecated_statistics_ui'][2]['values']['rows'][0] ?? []) === ['label','value','color'],'Deprecated per-page score chart contains unrelated values');
 
 foreach (['summary','pages','page:10-0-de'] as $test['mcp_id']) $test['mcp'][$test['mcp_id']] = \accessibility\McpView::read($test['mcp_id'],'de');
 expect($test['mcp']['summary']['coverage']['audited_pages'] === 1 && $test['mcp']['summary']['coverage']['audited_contexts'] === 2,'MCP summary coverage is invalid');
@@ -246,6 +259,6 @@ expect($test['handler']['type'] === 'accessibility' && $test['handler']['id'] ==
 $_SERVER['now'] += (\accessibility\Config::retentionDays() + 1) * 86400;
 expect(\accessibility\Repository::cleanup() === 2,'Expired audit files were not removed');
 expect(\accessibility\Repository::rows() === [],'Expired audit indexes were retained');
-expect(\accessibility\Statistics::data()['totals']['audits'] === 2,'Daily history was removed with raw audits');
+expect(\accessibility\Statistics::data()['days'][(string) $_SERVER['today']]['reports'] === 2,'Daily report history was removed with raw audits');
 
 echo 'OK '.$test['passed']." assertions\n";
