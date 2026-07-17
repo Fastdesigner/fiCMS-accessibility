@@ -1,6 +1,6 @@
 <?php
 
-if (!defined('PLUGINPATH')) define('PLUGINPATH','system/plugins');
+if (!defined('PLUGINPATH')) define('PLUGINPATH',dirname(__DIR__,2));
 if (!defined('DESIGNSYSTEM')) define('DESIGNSYSTEM',dirname(__DIR__,2).'/fiCMS-ui/designs/all');
 
 $test = ['passed'=>0,'dropped'=>[]];
@@ -77,6 +77,30 @@ function statistics__format_graph(string $language, array $data, array $labels =
 	return array_merge(['series'=>$data['series'] ?? [],'points'=>$data['points'] ?? []],$options);
 }
 
+function create__tablist($name, $names = [], $data = [], $attributes = []): array {
+	$tabs = ['id'=>$name.'Tabs','classes'=>['tab-container','system-bg'],'attributes'=>['role'=>'tablist','data-tabtarget'=>$name.'Panels'],'items'=>[]];
+	$panels = ['id'=>$name.'Panels','realid'=>$name.'Panels','items'=>[]];
+	foreach ($names as $key => $value) {
+		$tabs['items'][] = ['id'=>$name.'_tab_'.$key,'description'=>$value,'attributes'=>['role'=>'tab','aria-controls'=>$name.'_panel_'.$key]];
+		$panels['items'][] = array_merge(['id'=>$name.'_panel_'.$key,'items'=>$data[$key]],$attributes[$key] ?? []);
+	}
+	return ['tabs'=>$tabs,'panels'=>$panels];
+}
+
+function create__list($name, $items = [], $options = []): array {
+	return ['id'=>$name,'items'=>$items];
+}
+
+function create__dropdown($name, $label, $content, $options = []): array {
+	return ['id'=>$name,'description'=>$label,'items'=>[$content]];
+}
+
+function scores__calc($scores, $weights): int {
+	$product = 1;
+	foreach ($scores as $key => $score) $product *= pow(max(0.01,$score),$weights[$key]);
+	return min(100,max(0,(int) round(pow($product,1 / array_sum($weights)) * 100)));
+}
+
 function expect($condition, string $message): void {
 	global $test;
 	if (!$condition) throw new RuntimeException($message);
@@ -99,6 +123,15 @@ expect(\accessibility\Installer::run() === true,'Plugin file storage installatio
 expect($test['dropped'] === ['accessibility_audits','rewrites_accessibility'],'Former audit tables were not removed');
 expect($tables === [],'Former audit tables remained registered');
 expect(isset(TestFiles::$directories[\accessibility\Config::dataPath()]),'Plugin data directory was not initialized');
+
+$html = ['is_superviser'=>1];
+$settings = ['key'=>'accessibility-deprecated-empty','output'=>[]];
+$_POST = [];
+$_GET = [];
+include dirname(__DIR__).'/deprecated/settings/info/accessibility.php';
+$test['deprecated_empty_ui'] = $settings['output']['lists']['accessibility-deprecated-emptyContent']['items'] ?? [];
+expect(count($test['deprecated_empty_ui'][0]['items'] ?? []) === 2 && count($test['deprecated_empty_ui'][1]['items'] ?? []) === 2,'Deprecated empty state does not expose both tabs');
+expect(($test['deprecated_empty_ui'][1]['items'][1]['items'][0]['id'] ?? '') === 'accessibility-deprecated-empty-statistics-empty','Deprecated statistics empty state is invalid');
 
 $test['scores'] = [];
 foreach (\accessibility\Config::CATEGORIES as $test['category']) $test['scores'][$test['category']] = ['total'=>1,'success'=>1,'warning'=>0,'error'=>0];
@@ -180,6 +213,14 @@ expect(($test['ui']['items'][0]['type'] ?? '') === 'tabs' && count($test['ui']['
 $test['statistics_ui'] = $test['ui']['items'][0]['tabs'][1]['items'][0]['items'] ?? [];
 expect(array_column($test['statistics_ui'],'chart') === ['graph','graph','info','info','info','bars'],'Accessibility statistics charts are incomplete');
 expect(($test['statistics_ui'][5]['values']['max'] ?? 0) === 100 && count($test['statistics_ui'][5]['values']['rows'] ?? []) === 1,'Per-page score chart is invalid');
+
+$settings = ['key'=>'accessibility-deprecated','output'=>[]];
+include dirname(__DIR__).'/deprecated/settings/info/accessibility.php';
+$test['deprecated_ui'] = $settings['output']['lists']['accessibility-deprecatedContent']['items'] ?? [];
+expect(($test['deprecated_ui'][0]['attributes']['role'] ?? '') === 'tablist' && array_column($test['deprecated_ui'][0]['items'],'description') === ['de:_accessibility_tab_overview','de:_accessibility_tab_statistics'],'Deprecated accessibility tabs are invalid');
+$test['deprecated_statistics_ui'] = $test['deprecated_ui'][1]['items'][1]['items'][0]['items'] ?? [];
+expect(array_column($test['deprecated_statistics_ui'],'chart') === ['graph','graph','info','info','info','bars'],'Deprecated accessibility statistics charts are incomplete');
+expect(($test['deprecated_statistics_ui'][5]['values']['max'] ?? 0) === 100 && count($test['deprecated_statistics_ui'][5]['values']['rows'] ?? []) === 1,'Deprecated per-page score chart is invalid');
 
 foreach (['summary','pages','page:10-0-de'] as $test['mcp_id']) $test['mcp'][$test['mcp_id']] = \accessibility\McpView::read($test['mcp_id'],'de');
 expect($test['mcp']['summary']['coverage']['audited_pages'] === 1 && $test['mcp']['summary']['coverage']['audited_contexts'] === 2,'MCP summary coverage is invalid');
