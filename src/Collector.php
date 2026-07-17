@@ -7,6 +7,8 @@ class Collector {
 		$context = SessionContext::consume($mid,$tid,$lid);
 		if ($context === false) return false;
 		$result = Result::fromPayload($payload,$context);
-		return $result !== false && Repository::store($result);
+		if ($result === false || !Repository::store($result)) return false;
+		Statistics::record((int) ($_SERVER['now'] ?? time()));
+		return true;
 	}
 }

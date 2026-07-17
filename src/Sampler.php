@@ -4,9 +4,9 @@ namespace accessibility;
 
 class Sampler {
 	public static function select(array $modul, array $html, array $user): bool {
-		global $site, $tables;
+		global $site;
 
-		if (!$site['onsite'] || !Config::enabled() || !License::allowed() || !isset($tables[Config::TABLE])) return false;
+		if (!$site['onsite'] || !Config::enabled() || !License::allowed()) return false;
 		if ((int) ($user['id'] ?? 0) !== 0 || (int) ($html['is_main'] ?? 0) !== 1 || (int) ($html['is_bot'] ?? 1) === 1 || !empty($_SERVER['halt']['status'])) return false;
 		$context = [
 			'mid'=>(int) ($modul['mid'] ?? $modul['id'] ?? 0),

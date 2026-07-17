@@ -4,7 +4,7 @@ if (!$site['onsite']) return;
 
 if (isset($_POST['accessibility_result'])) {
 	$accessibility = ['stored'=>false];
-	if (\accessibility\Config::enabled() && \accessibility\License::allowed() && isset($tables[\accessibility\Config::TABLE])) $accessibility['stored'] = \accessibility\Collector::acceptPending(
+	if (\accessibility\Config::enabled() && \accessibility\License::allowed() && \accessibility\Repository::available()) $accessibility['stored'] = \accessibility\Collector::acceptPending(
 		(int) ($_GET['vmid'] ?? 0),
 		(int) ($_GET['vtid'] ?? 0),
 		(string) ($_GET['vlid'] ?? ''),
@@ -23,7 +23,7 @@ if (!\accessibility\License::allowed()) {
 	unset($accessibility);
 	return;
 }
-if (!isset($tables[\accessibility\Config::TABLE])) {
+if (!\accessibility\Repository::available()) {
 	unset($accessibility);
 	return;
 }

@@ -116,11 +116,10 @@ final class McpView {
 	}
 
 	private static function status(array $rows): array {
-		global $tables;
 		$fresh = 0;
 		foreach ($rows as $row) if (self::isFresh((int) ($row['audit_time'] ?? 0))) $fresh++;
 		return [
-			'available'=>isset($tables[Config::TABLE]) && License::allowed(),
+			'available'=>Repository::available() && License::allowed(),
 			'enabled'=>Config::enabled(),
 			'has_data'=>(bool) $rows,
 			'freshness_days'=>Config::freshnessDays(),

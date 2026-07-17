@@ -1,6 +1,6 @@
 <?php
 
-if (!$site['onsite'] || !isset($tables[\accessibility\Config::TABLE]) || !\accessibility\License::allowed()) return;
+if (!$site['onsite'] || !\accessibility\Repository::available() || !\accessibility\License::allowed()) return;
 
 if ($reports['mode'] == 'meta') {
 	$reports['meta'] = ['active'=>0,'opt_label'=>'accessibility','selfsend'=>1,'schedule'=>['every'=>'month','offset'=>1]];

@@ -105,5 +105,15 @@
     "_accessibility_error": "Failed",
     "_accessibility_success": "Passed",
     "_accessibility_accessibility_item": "Accessibility issue",
-    "_accessibility_accessibility_item_subtitle": "%value%"
+    "_accessibility_accessibility_item_subtitle": "%value%",
+    "_accessibility_tab_overview": "Overview",
+    "_accessibility_tab_statistics": "Statistics",
+    "_accessibility_statistics_empty": "The daily development will appear here as soon as new audits are available.",
+    "_accessibility_statistics_score_history": "Score development",
+    "_accessibility_statistics_activity": "Completed checks",
+    "_accessibility_statistics_audits": "Audits",
+    "_accessibility_statistics_checks": "Scored checks",
+    "_accessibility_statistics_check_runs": "Executed individual checks",
+    "_accessibility_statistics_page_scores": "Overall score by page",
+    "_accessibility_statistics_page_last": "Last checked: %last%"
 }

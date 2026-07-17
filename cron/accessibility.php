@@ -1,6 +1,6 @@
 <?php
 
-if (!$site['onsite'] || !$_SERVER['database']['active']) return;
+if (!$site['onsite']) return;
 
 $accessibility = ['installed'=>\accessibility\Installer::run()];
 

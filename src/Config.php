@@ -8,6 +8,10 @@ class Config {
 	public const ENGINE_VERSION = '0.1.1';
 	public const CATEGORIES = ['media_alt','navigatability','form_labels','semantic','readability','user_preferences'];
 
+	public static function dataPath(string $path = ''): string {
+		return PLUGINPATH.'/fiCMS-accessibility/data'.($path === '' ? '' : '/'.ltrim($path,'/'));
+	}
+
 	public static function enabled(): bool {
 		global $site;
 		return (int) ($site['accessibility_audit_active'] ?? 1) === 1;

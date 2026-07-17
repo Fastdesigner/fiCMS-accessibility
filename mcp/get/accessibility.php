@@ -9,6 +9,6 @@ if ($mcp['mode'] === 'capabilities') return (($mcp['scope'] ?? 'user') === 'admi
 ] : false;
 
 if (($mcp['scope'] ?? 'user') !== 'admin') return ['error'=>'admin scope required.'];
-if (!isset($tables[\accessibility\Config::TABLE]) || !\accessibility\License::allowed()) return ['error'=>'accessibility audits are not available.'];
+if (!\accessibility\Repository::available() || !\accessibility\License::allowed()) return ['error'=>'accessibility audits are not available.'];
 
 return \accessibility\McpView::read(trim(strval($get['id'])),mcp__task_language($mcp['task']) ?: (string) ($user['language'] ?? $site['default_language'] ?? 'en'));
