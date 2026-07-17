@@ -1,11 +1,24 @@
 <?php
 
-$test = ['mysql_result'=>false,'mysql_check'=>[],'last_query'=>'','passed'=>0];
+$test = ['mysql_result'=>false,'mysql_rows'=>[],'mysql_check'=>[],'last_query'=>'','passed'=>0];
+
+class TestMysqlResult {
+	public int $index = 0;
+
+	public function __construct(public array $rows) {}
+}
 
 function mysqlFetchAssoc($query) {
 	global $test;
+	if ($query instanceof TestMysqlResult) return $query->rows[$query->index++] ?? null;
 	$test['last_query'] = is_string($query) ? $query : '';
 	return $test['mysql_result'];
+}
+
+function mysqlQuery($query) {
+	global $test;
+	$test['last_query'] = (string) $query;
+	return new TestMysqlResult(array_shift($test['mysql_rows']) ?? []);
 }
 
 function mysqlCheck($table, $fields = [], $keys = [], $delete = [], $force = []) {
@@ -18,6 +31,20 @@ function mysqlEscape(string $value): string {
 	return addslashes($value);
 }
 
+function helper__json_convert($value) {
+	if (is_array($value)) return $value;
+	$result = json_decode((string) $value,true);
+	return is_array($result) ? $result : $value;
+}
+
+function language__get(string $language, string $key): string {
+	return $language.':'.$key;
+}
+
+function mcp__task_language(array $task): string {
+	return (string) ($task['instruction_vars']['language'] ?? '');
+}
+
 function expect($condition, string $message): void {
 	global $test;
 	if (!$condition) throw new RuntimeException($message);
@@ -25,10 +52,11 @@ function expect($condition, string $message): void {
 }
 
 require_once(dirname(__DIR__,2).'/fiCMS-ui/include/classes/fiCMS/src/Assessment.php');
-foreach (['Config','Score','Result','SessionContext','Repository','Overview','Installer'] as $test['class']) require_once(dirname(__DIR__).'/src/'.$test['class'].'.php');
+foreach (['Config','License','Score','Result','SessionContext','Repository','Overview','Installer','McpView'] as $test['class']) require_once(dirname(__DIR__).'/src/'.$test['class'].'.php');
 
-$site = ['ficms_version'=>'test'];
+$site = ['ficms_version'=>'test','onsite'=>1,'default_language'=>'de'];
 $tables = ['accessibility_audits'=>'accessibility_audits'];
+$user = ['language'=>'de'];
 $_SERVER['now'] = 1_000;
 $_SESSION = [];
 
@@ -87,5 +115,50 @@ expect(\accessibility\Repository::isFresh($test['context'],10) === false,'Missin
 expect(str_contains($test['last_query'],'`created_at` >= FROM_UNIXTIME(') && !str_contains($test['last_query'],'`date`'),'Freshness does not use native timestamps');
 $test['mysql_result'] = ['id'=>1];
 expect(\accessibility\Repository::isFresh($test['context'],10) === true,'Existing audit was not treated as fresh');
+
+$test['legacy_envelope'] = $test['result']->envelope();
+$test['legacy_envelope']['engine']['version'] = 'legacy-core';
+$test['legacy_envelope']['audit']['accessibility']['error']['_accessibility_media_alt_missing'][0]['name'] = '<img src="private.jpg">';
+$test['legacy_envelope']['audit']['accessibility']['error']['_accessibility_media_alt_missing'][0]['value'] = 'private alt';
+$test['legacy_envelope']['audit']['stats']['private'] = 'discard';
+$test['rows'] = [
+	[
+		'id'=>1,'mid'=>10,'tid'=>0,'lid'=>'de','mobile'=>0,'path'=>'/test','schema_version'=>\accessibility\Config::SCHEMA,'engine_version'=>'legacy-core',
+		'score'=>$test['result']->aggregate()['score'],'total'=>6,'success'=>5,'warning'=>0,'error'=>1,'audit_time'=>1_200,'result'=>json_encode($test['legacy_envelope'])
+	],
+	[
+		'id'=>2,'mid'=>10,'tid'=>0,'lid'=>'de','mobile'=>1,'path'=>'/test','schema_version'=>\accessibility\Config::SCHEMA,'engine_version'=>\accessibility\Config::ENGINE_VERSION,
+		'score'=>100,'total'=>6,'success'=>6,'warning'=>0,'error'=>0,'audit_time'=>1_201,'result'=>json_encode($test['second'])
+	]
+];
+$test['mysql_rows'][] = $test['rows'];
+$test['page_rows'] = \accessibility\Repository::pageRows(10,0,'de');
+expect(count($test['page_rows']) === 2,'Page audit repository did not return both viewports');
+expect(str_contains($test['last_query'],'`mid` = 10') && str_contains($test['last_query'],'`tid` = 0') && str_contains($test['last_query'],"`lid` = 'de'"),'Page audit repository did not filter by page context');
+
+foreach (['summary','pages','page:10-0-de'] as $test['mcp_id']) {
+	$test['mysql_rows'][] = $test['rows'];
+	$test['mcp'][$test['mcp_id']] = \accessibility\McpView::read($test['mcp_id'],'de');
+}
+expect($test['mcp']['summary']['coverage']['audited_pages'] === 1 && $test['mcp']['summary']['coverage']['audited_contexts'] === 2,'MCP summary coverage is invalid');
+expect($test['mcp']['summary']['assessment']['score_percent'] === 89,'MCP summary score is invalid');
+expect($test['mcp']['summary']['finding_groups']['error'][0]['occurrences'] === 2 && $test['mcp']['summary']['finding_groups']['error'][0]['affected_pages'] === 1,'MCP summary finding counts are invalid');
+expect($test['mcp']['pages']['pages'][0]['audited_viewports'] === ['desktop','mobile'] && $test['mcp']['pages']['pages'][0]['missing_viewports'] === [],'MCP page coverage did not merge viewports');
+expect(isset($test['mcp']['page:10-0-de']['audits']['desktop'],$test['mcp']['page:10-0-de']['audits']['mobile']),'MCP page detail did not expose both audits');
+expect($test['mcp']['page:10-0-de']['audits']['desktop']['findings']['error'][0]['items'][0]['selector'] === 'main img','MCP page detail lost the sanitized selector');
+expect($test['mcp']['page:10-0-de']['audits']['desktop']['findings']['error'][0]['items'][0]['element'] === 'img' && $test['mcp']['page:10-0-de']['audits']['desktop']['findings']['error'][0]['items'][0]['value'] === false,'MCP page detail exposed legacy media data');
+expect(!isset($test['mcp']['page:10-0-de']['audits']['desktop']['stats']['private']),'MCP page detail exposed unknown legacy statistics');
+
+$mcp = ['mode'=>'capabilities','scope'=>'admin','task'=>[]];
+$test['capability'] = include dirname(__DIR__).'/mcp/get/accessibility.php';
+expect($test['capability']['tool'] === 'get' && $test['capability']['type'] === 'accessibility','Admin MCP capability is missing');
+$mcp['scope'] = 'user';
+$test['user_capability'] = include dirname(__DIR__).'/mcp/get/accessibility.php';
+expect($test['user_capability'] === false,'Accessibility MCP capability leaked into user scope');
+$mcp = ['mode'=>'call','scope'=>'admin','task'=>['instruction_vars'=>['language'=>'de']]];
+$get = ['id'=>'summary'];
+$test['mysql_rows'][] = $test['rows'];
+$test['handler'] = include dirname(__DIR__).'/mcp/get/accessibility.php';
+expect($test['handler']['type'] === 'accessibility' && $test['handler']['id'] === 'summary','Accessibility MCP handler did not return the summary view');
 
 echo 'OK '.$test['passed']." assertions\n";

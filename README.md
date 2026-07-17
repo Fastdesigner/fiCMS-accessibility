@@ -18,8 +18,22 @@ The first implementation is intentionally fiCMS-native. WordPress and TYPO3 inte
 - `assets/js/accessibility/`: fiCMS-native audit module and lazy renderer.
 - `build/`: visitor sampling before Core asset assembly.
 - `src/`: schema, migration, session context, validation, storage and shared score overview.
+- `mcp/`: admin-only audit readers and interpretation guidance for local agents.
 - `health/`: optional contribution to the Core `legal` category.
 - `settings/` and `reports/`: native fiCMS consumers of the shared overview.
 - `cron/` and `cleanup/`: schema ownership, migration and retention.
 - `localization/`: plugin-owned admin, report and Health texts.
 - `tests/`: executable backend contract tests.
+
+## MCP
+
+The Core discovers the plugin's admin-only `accessibility` get type automatically:
+
+```text
+get("accessibility", "summary")
+get("accessibility", "pages")
+get("accessibility", "page:10-0-de")
+get("skill", "accessibility")
+```
+
+The responses expose stored audit coverage, freshness and limitations so agents can distinguish an automated sampled finding from a compliance statement.

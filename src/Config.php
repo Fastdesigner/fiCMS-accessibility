@@ -5,7 +5,7 @@ namespace accessibility;
 class Config {
 	public const TABLE = 'accessibility_audits';
 	public const SCHEMA = 'accessibility-audit/1';
-	public const ENGINE_VERSION = '0.1.0';
+	public const ENGINE_VERSION = '0.1.1';
 	public const CATEGORIES = ['media_alt','navigatability','form_labels','semantic','readability','user_preferences'];
 
 	public static function enabled(): bool {

@@ -47,10 +47,22 @@ class Repository {
 	}
 
 	public static function rows(int $before = 0): array {
+		return self::currentRows($before);
+	}
+
+	public static function pageRows(int $mid, int $tid, string $lid, int $before = 0): array {
+		if ($mid <= 0 || $tid < 0 || $lid === '') return [];
+		return self::currentRows($before,['mid'=>$mid,'tid'=>$tid,'lid'=>$lid]);
+	}
+
+	private static function currentRows(int $before = 0, array $context = []): array {
 		global $tables;
 		if (!isset($tables[Config::TABLE])) return [];
-		$rows = $handled = [];
-		$fetch = mysqlQuery('SELECT *,UNIX_TIMESTAMP(`created_at`) AS `audit_time` FROM '.$tables[Config::TABLE].(($before > 0) ? ' WHERE `created_at` < FROM_UNIXTIME('.$before.')' : '').' ORDER BY `created_at` DESC');
+		$rows = $handled = $where = [];
+		if ($before > 0) $where[] = '`created_at` < FROM_UNIXTIME('.$before.')';
+		foreach (['mid','tid'] as $key) if (isset($context[$key])) $where[] = '`'.$key.'` = '.(int) $context[$key];
+		if (isset($context['lid'])) $where[] = '`lid` = \''.mysqlEscape((string) $context['lid']).'\'';
+		$fetch = mysqlQuery('SELECT *,UNIX_TIMESTAMP(`created_at`) AS `audit_time` FROM '.$tables[Config::TABLE].($where ? ' WHERE '.implode(' AND ',$where) : '').' ORDER BY `created_at` DESC');
 		while ($row = mysqlFetchAssoc($fetch)) {
 			$key = (int) $row['mid'].'-'.(int) $row['tid'].'-'.(string) $row['lid'].'-'.(int) $row['mobile'];
 			if (isset($handled[$key])) continue;

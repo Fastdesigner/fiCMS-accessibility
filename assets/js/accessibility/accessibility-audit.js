@@ -541,15 +541,19 @@ function accessibility__find_last_parent(hierarchy, level) {
 }
 
 function accessibility__init_media_alt(el) {
-    if (el.getAttribute("aria-hidden") === "true") return { status: "ignored" };
+	if (el.getAttribute("aria-hidden") === "true") return { status: "ignored" };
 
-    if (el.tagName.toLowerCase() === "img") {
-        let alt = el.getAttribute("alt") || "", wordCount = alt.trim().split(/\s+/).length, role = el.getAttribute("role");
+	if (el.tagName.toLowerCase() === "img") {
+		let alt = el.getAttribute("alt") || "", wordCount = alt.trim().split(/\s+/).length, role = el.getAttribute("role");
 
-        if (role === "presentation" || role === "decorative" || alt === "") return { status: "ignored" };
-        if (!el.hasAttribute("alt")) return { status: "error", reason: "_accessibility_alt_missing", image:el.outerHTML };
-        if (wordCount < 2) return { status: "warning", reason: "_accessibility_alt_non_descriptive", image:el.outerHTML, value:alt };
-    } else if (el.tagName.toLowerCase() === "video") {
+		if (role === "presentation" || role === "decorative") return { status: "ignored" };
+		if (!el.hasAttribute("alt")) {
+			console.log('FICMS-A11Y-MEDIA missing alt', {target:accessibility__get_unique_selector(el)});
+			return { status: "error", reason: "_accessibility_alt_missing", image:el.outerHTML };
+		}
+		if (alt === "") return { status: "ignored" };
+		if (wordCount < 2) return { status: "warning", reason: "_accessibility_alt_non_descriptive", image:el.outerHTML, value:alt };
+	} else if (el.tagName.toLowerCase() === "video") {
 		let hasCaptions = el.querySelector("track[kind='captions']"),
 			hasSubtitles = el.querySelector("track[kind='subtitles']"),
 			hasDescriptions = el.querySelector("track[kind='descriptions']");
@@ -1131,7 +1135,7 @@ async function accessibility__start() {
 }
 
 export const AccessibilityAudit = {
-	version:'0.1.0',
+	version:'0.1.1',
 	run(options = {}) {
 		if (options.document && options.document !== document) throw new Error('Accessibility audit document mismatch');
 		return accessibility__start();
