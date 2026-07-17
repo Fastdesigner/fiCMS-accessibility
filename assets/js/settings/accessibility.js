@@ -23,7 +23,5 @@ function accessibility__report_check(obj,json) {
 	try {
 		let elem = document.querySelector(selector);
 		if (elem) obj.setAttribute('data-onthispage','true');
-	} catch (e) {
-		console.log(e);
-	}
+	} catch {}
 }

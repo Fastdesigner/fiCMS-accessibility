@@ -347,7 +347,7 @@ function accessibility__contrast_clone(cloned,mode) {
 }
 
 async function accessibility__contrast_canvas(renderer,root,rootRect,background,mode) {
-	let timeout, started = performance.now();
+	let timeout;
 	try {
 		return await Promise.race([
 			renderer.domToCanvas(root,{
@@ -362,14 +362,6 @@ async function accessibility__contrast_canvas(renderer,root,rootRect,background,
 			}),
 			new Promise((resolve,reject) => timeout = setTimeout(() => reject(new Error('Contrast capture timeout')),8000))
 		]);
-	} catch(e) {
-		console.log('FICMS-A11Y-CONTRAST capture failed', {
-			root:accessibility__get_unique_selector(root),
-			size:Math.round(rootRect.width) + 'x' + Math.round(rootRect.height),
-			duration:Math.round(performance.now() - started),
-			error:e.message
-		});
-		throw e;
 	} finally {
 		clearTimeout(timeout);
 	}
@@ -547,10 +539,7 @@ function accessibility__init_media_alt(el) {
 		let alt = el.getAttribute("alt") || "", wordCount = alt.trim().split(/\s+/).length, role = el.getAttribute("role");
 
 		if (role === "presentation" || role === "decorative") return { status: "ignored" };
-		if (!el.hasAttribute("alt")) {
-			console.log('FICMS-A11Y-MEDIA missing alt', {target:accessibility__get_unique_selector(el)});
-			return { status: "error", reason: "_accessibility_alt_missing", image:el.outerHTML };
-		}
+		if (!el.hasAttribute("alt")) return { status: "error", reason: "_accessibility_alt_missing", image:el.outerHTML };
 		if (alt === "") return { status: "ignored" };
 		if (wordCount < 2) return { status: "warning", reason: "_accessibility_alt_non_descriptive", image:el.outerHTML, value:alt };
 	} else if (el.tagName.toLowerCase() === "video") {
@@ -625,15 +614,7 @@ function accessibility__init_navigatability(el,source = el,stage = false) {
 			// Fokus setzen
 			let visible = typeof el.checkVisibility !== 'function' || el.checkVisibility();
 			if (visible) try { el.focus({ preventScroll: true, focusVisible:true }); } catch(e) {}
-			if (!visible || document.activeElement !== el) {
-				console.log('FICMS-A11Y-FOCUS focus rejected', {
-					target:accessibility__get_unique_selector(source),
-					active:document.activeElement === el ? accessibility__get_unique_selector(source) : (document.activeElement ? accessibility__get_unique_selector(document.activeElement) : false),
-					visible:visible,
-					containers:Array.from(document.querySelectorAll('dialog, details')).filter(container => container.contains(source)).map(container => ({tag:container.tagName.toLowerCase(),open:container.open}))
-				});
-				return visible ? { status: "warning", reason: "_accessibility_focus_not_focusable" } : { status: "ignored" };
-			}
+			if (!visible || document.activeElement !== el) return visible ? { status: "warning", reason: "_accessibility_focus_not_focusable" } : { status: "ignored" };
 
 		// Prüfen, ob sich die Styles geändert haben (Fokus sichtbar)
 		let changed = targets.some(t => t.pre !== accessibility__style_hash(t.ref));
@@ -660,20 +641,7 @@ function accessibility__init_readability(el,source = el) {
 	let colors = fiCMS.accessibility.contrastColors.get(source) || helper__get_contrast_colors(el), captured = fiCMS.accessibility.contrastPixels.get(source),
 		contrast = captured ? captured.contrast : helper__get_contrast(colors.color,colors.background);
 	if (colors.complex.length && !captured) throw new Error('Contrast pixels fehlen fuer ' + accessibility__get_unique_selector(source));
-	if (captured) fiCMS.accessibility.contrastDiagnostics.captured++;
 	let passed = helper__get_contrast_sufficient(contrast, el);
-	if (!passed) {
-		fiCMS.accessibility.contrastDiagnostics.failed++;
-		if (fiCMS.accessibility.contrastDiagnostics.samples.length < 3) fiCMS.accessibility.contrastDiagnostics.samples.push({
-			status:'failed',
-			target:accessibility__get_unique_selector(source),
-			color:captured ? captured.color : colors.color,
-			background:captured ? captured.background : colors.background,
-			contrast:contrast,
-			source:captured ? 'pixels' : 'computed',
-			layers:captured ? [] : colors.layers
-		});
-	}
 	return (passed) ? {status: "success"} : {status: "error", value: contrast, reason: "_accessibility_text_low_contrast"};
 }
 
@@ -777,7 +745,7 @@ function accessibility__init_user_preferences(el) {
 	let optInAnimation = hasAnimation && accessibility__motion_preference_opt_in(el,'animation',cs),
 		optInTransition = hasTransition && accessibility__motion_preference_opt_in(el,'transition',cs),
 		value = accessibility__motion_description(cs,hasAnimation,hasTransition);
-	if ((!hasAnimation || optInAnimation) && (!hasTransition || optInTransition)) return {status:"success",preference:"no-preference"};
+	if ((!hasAnimation || optInAnimation) && (!hasTransition || optInTransition)) return {status:"success"};
 
 	let rules = fiCMS.accessibility.reducedMotion || [];
 	let matches = rules.filter(r => {
@@ -838,27 +806,20 @@ function accessibility__init_user_preferences(el) {
 		return {status:"warning",reason:"_accessibility_prefers_reduced_motion_too_long",value:value};
 	}
 
-	return {status:"success",preference:(optInAnimation || optInTransition) ? "no-preference" : "reduce"};
+	return {status:"success"};
 }
 
 function accessibility__check_user_preferences(elements, scores, accessibility) {
-	let stats = {elements:0,motionElements:0,ignoredAllTransitions:0,preferenceOptIns:0,warningElements:0};
 	scores.user_preferences = {total:0,success:0,warning:0,error:0};
 
 	elements.forEach(({obj}) => {
 		if (typeof obj.checkVisibility === 'function' && !obj.checkVisibility()) return;
-		stats.elements++;
-		let cs = window.getComputedStyle(obj);
-		if (String(cs.transitionProperty || '').toLowerCase().split(',').map(value => value.trim()).includes('all') && accessibility__css_time_max(cs.transitionDuration) > 150) stats.ignoredAllTransitions++;
 		let result = accessibility__init_user_preferences(obj);
 		if (result.status === 'ignored') return;
-		stats.motionElements++;
 		scores.user_preferences.total++;
 		scores.user_preferences[result.status]++;
-		if (result.preference === 'no-preference') stats.preferenceOptIns++;
 		if (result.status !== 'warning') return;
 
-		stats.warningElements++;
 		if (!accessibility.warning[result.reason]) accessibility.warning[result.reason] = [];
 		accessibility.warning[result.reason].push({
 			id:uniqueId(),
@@ -868,7 +829,6 @@ function accessibility__check_user_preferences(elements, scores, accessibility) 
 			unique:accessibility__get_unique_selector(obj)
 		});
 	});
-	if (window.fiCMS && window.fiCMS.external) console.log('FICMS-A11Y-MOTION summary',stats);
 }
 
 function accessibility__init_headlines(el) {
@@ -1017,7 +977,6 @@ async function accessibility__init() {
 		skip: false,
 		landmarks: { main:0, header:0, footer:0, nav:0 },
 		headline: { level:[], hierarchie:[] },
-		contrastDiagnostics: {failed:0,captured:0,samples:[]},
 		reducedMotion: accessibility__collect_motion_preference_rules('reduce'),
 		motionOptIns: accessibility__collect_motion_preference_rules('no-preference'),
 		motionAnimations: accessibility__collect_motion_animation_names()
@@ -1076,7 +1035,6 @@ async function accessibility__init() {
 
 	// Bewegungspräferenzen nach dem zustandsabhängigen DOM-Traversal prüfen.
 	accessibility__check_user_preferences(elements,scores,accessibility);
-	if (window.fiCMS && window.fiCMS.external) console.log('FICMS-A11Y-CONTRAST summary',fiCMS.accessibility.contrastDiagnostics);
 
 	// Landmark-Regeln prüfen
 	let landmarkRules = {
@@ -1100,7 +1058,6 @@ async function accessibility__init() {
 
 	// Skiplink prüfen
 	if (typeof scores["navigatability"] === "undefined") {
-		if (window.fiCMS && window.fiCMS.external) console.log('FICMS-A11Y-NAVIGATABILITY missing score bucket before skiplink check', {elements:elements.length, skip:fiCMS.accessibility.skip});
 		scores["navigatability"] = { total:0, success:0, warning:0, error:0 };
 	}
 	scores["navigatability"].total++;

@@ -100,7 +100,7 @@ This does not assess reading level, language correctness, zoom/reflow, line spac
 - Warn when no applicable reduction rule exists or when the reduction still exceeds 150 ms.
 - Explicit `prefers-reduced-motion: no-preference` opt-ins are recognized.
 
-Generic `transition-property: all` is counted diagnostically but is not treated as complete evidence for every motion property.
+Generic `transition-property: all` is not evaluated as complete evidence for every motion property.
 
 ## Findings and counts
 
