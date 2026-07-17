@@ -112,5 +112,15 @@
     "_accessibility_statistics_report_history": "Entstandene Reports",
     "_accessibility_statistics_reports": "Reports",
     "_accessibility_statistics_category_history": "Entwicklung der Teilbewertungen",
-    "_accessibility_statistics_page_scores": "Scores der geprüften Unterseiten"
+    "_accessibility_statistics_page_scores": "Scores der geprüften Unterseiten",
+    "_accessibility_tab_resolve": "Auflösen",
+    "_accessibility_resolve_intro": "Die festgestellten Probleme können im Layout oder in den Inhalten Ihrer Website liegen. Zur Behebung können Sie Ihren Layout-Entwickler hinzuziehen und betroffene Inhalte redaktionell überarbeiten.",
+    "_accessibility_resolve_service": "Fastdesign analysiert die aktuellen Prüfergebnisse und behebt erkannte Probleme in Ihren Layout-Dateien. Verbleibende Inhaltsprobleme werden ausgewiesen und müssen gegebenenfalls separat korrigiert werden.",
+    "_accessibility_resolve_maintenance": "Mit einem Wartungsvertrag wird Ihre Website regelmäßig überprüft. Ohne Wartungsvertrag können Sie hier eine kostenpflichtige Analyse und Behebung beauftragen.",
+    "_accessibility_resolve_button": "Kostenpflichtige Behebung beauftragen",
+    "_accessibility_resolve_confirm": "Mit dem Absenden beauftragen Sie Fastdesign kostenpflichtig mit der Analyse und Behebung der festgestellten Layout-Probleme.",
+    "_accessibility_resolve_active": "Der Auftrag wurde an Fastdesign übermittelt. Details zur Bearbeitung stimmen Sie direkt mit Fastdesign ab.",
+    "_accessibility_resolve_no_findings": "Der aktuelle Bericht enthält keine Warnungen oder fehlgeschlagenen Prüfungen.",
+    "_accessibility_job_title": "Barrierefreiheitsprobleme beheben",
+    "_accessibility_job_description": "Vom Webseitenbetreiber beauftragte Analyse und Behebung des aktuellen Barrierefreiheitsberichts."
 }

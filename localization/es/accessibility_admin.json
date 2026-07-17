@@ -112,5 +112,15 @@
     "_accessibility_statistics_report_history": "Informes generados",
     "_accessibility_statistics_reports": "Informes",
     "_accessibility_statistics_category_history": "Evolución de las puntuaciones parciales",
-    "_accessibility_statistics_page_scores": "Puntuaciones de las páginas auditadas"
+    "_accessibility_statistics_page_scores": "Puntuaciones de las páginas auditadas",
+    "_accessibility_tab_resolve": "Resolver",
+    "_accessibility_resolve_intro": "Los problemas detectados pueden encontrarse en el diseño o en los contenidos del sitio web. Puede recurrir a su desarrollador de diseño y revisar los contenidos afectados.",
+    "_accessibility_resolve_service": "Fastdesign analiza los resultados actuales y corrige los problemas detectados en los archivos de diseño. Los problemas de contenido restantes se documentan y pueden requerir una corrección por separado.",
+    "_accessibility_resolve_maintenance": "Con un contrato de mantenimiento, su sitio web se revisa periódicamente. Sin contrato, puede encargar aquí un análisis y una resolución de pago.",
+    "_accessibility_resolve_button": "Encargar resolución de pago",
+    "_accessibility_resolve_confirm": "Al enviar, encarga a Fastdesign un análisis y una resolución de pago de los problemas de diseño detectados.",
+    "_accessibility_resolve_active": "El encargo se ha enviado a Fastdesign. Los detalles se coordinarán directamente con Fastdesign.",
+    "_accessibility_resolve_no_findings": "El informe actual no contiene advertencias ni comprobaciones fallidas.",
+    "_accessibility_job_title": "Resolver problemas de accesibilidad",
+    "_accessibility_job_description": "Análisis y resolución del informe de accesibilidad actual encargado por el operador del sitio web."
 }

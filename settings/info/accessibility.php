@@ -30,6 +30,8 @@ if (!\accessibility\License::allowed()) {
 if (!\accessibility\Repository::available()) return;
 
 $accessibility['assessment'] = \accessibility\Overview::current();
+if (isset($_POST['settings'],$_POST['type'],$_POST['action']) && $_POST['type'] == $settings['key'] && $_POST['action'] === 'request_resolution') $settings['output']['result'] = \accessibility\LayoutJob::request($user['language']);
+$accessibility['active_job'] = \accessibility\LayoutJob::active();
 $accessibility['ui'] = new \ficms\Ui($settings['key'],'accessibility',$user['language']);
 $accessibility['overview_tab'] = $accessibility['ui']->tab('overview',['label'=>language__get($user['language'],'_accessibility_tab_overview')]);
 $accessibility['metrics'] = $accessibility['overview_tab']->listing('metrics',['kind'=>'statistics']);
@@ -79,6 +81,17 @@ if (!$accessibility['statistics_data']['days']) {
 		'data-label'=>language__get($user['language'],'_accessibility_statistics_page_scores')
 	]]);
 }
+$accessibility['resolve_tab'] = $accessibility['ui']->tab('resolve',['label'=>language__get($user['language'],'_accessibility_tab_resolve')]);
+$accessibility['resolve_tab']->text('resolve-intro',language__get($user['language'],'_accessibility_resolve_intro'));
+$accessibility['resolve_tab']->text('resolve-service',language__get($user['language'],'_accessibility_resolve_service'));
+$accessibility['resolve_tab']->text('resolve-maintenance',language__get($user['language'],'_accessibility_resolve_maintenance'));
+if ($accessibility['active_job']) $accessibility['resolve_tab']->text('resolve-active',language__get($user['language'],'_accessibility_resolve_active'));
+else if (\accessibility\LayoutJob::hasFindings($accessibility['assessment'])) $accessibility['resolve_tab']->button('resolve-button',[
+	'label'=>language__get($user['language'],'_accessibility_resolve_button'),
+	'action'=>'request_resolution',
+	'confirm'=>language__get($user['language'],'_accessibility_resolve_confirm')
+]);
+else $accessibility['resolve_tab']->text('resolve-no-findings',language__get($user['language'],'_accessibility_resolve_no_findings'));
 $accessibility['ui']->emit($settings);
 
 unset($accessibility);

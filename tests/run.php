@@ -37,6 +37,24 @@ class TestFiles {
 
 class_alias(TestFiles::class,'ficms\\Files');
 
+class TestJobs {
+	public static array $jobs = [];
+
+	public static function openLayoutJobs(bool $includeResolved = false): array {
+		return self::$jobs;
+	}
+
+	public static function announceLayoutJob(array $job): array {
+		$job['state'] = 'open';
+		$job['created'] = (int) ($_SERVER['now'] ?? time());
+		$job['updated'] = $job['created'];
+		self::$jobs[$job['key']] = $job;
+		return $job;
+	}
+}
+
+class_alias(TestJobs::class,'ficms\\Jobs');
+
 function mysqlDrop($table) {
 	global $tables, $test;
 	if (!isset($tables[$table])) return false;
@@ -110,7 +128,7 @@ function expect($condition, string $message): void {
 require_once(dirname(__DIR__,2).'/fiCMS-ui/include/classes/fiCMS/src/Assessment.php');
 require_once(dirname(__DIR__,2).'/fiCMS-ui/include/classes/fiCMS/src/Ui/Node.php');
 require_once(dirname(__DIR__,2).'/fiCMS-ui/include/classes/fiCMS/src/Ui.php');
-foreach (['Config','License','Score','Result','SessionContext','Repository','Overview','Installer','Statistics','McpView'] as $test['class']) require_once(dirname(__DIR__).'/src/'.$test['class'].'.php');
+foreach (['Config','License','Score','Result','SessionContext','Repository','Overview','Installer','Statistics','McpView','LayoutJob'] as $test['class']) require_once(dirname(__DIR__).'/src/'.$test['class'].'.php');
 
 $site = ['ficms_version'=>'test','onsite'=>1,'default_language'=>'de'];
 $tables = ['accessibility_audits'=>'accessibility_audits','rewrites_accessibility'=>'rewrites_accessibility'];
@@ -130,8 +148,9 @@ $_POST = [];
 $_GET = [];
 include dirname(__DIR__).'/deprecated/settings/info/accessibility.php';
 $test['deprecated_empty_ui'] = $settings['output']['lists']['accessibility-deprecated-emptyContent']['items'] ?? [];
-expect(count($test['deprecated_empty_ui'][0]['items'] ?? []) === 2 && count($test['deprecated_empty_ui'][1]['items'] ?? []) === 2,'Deprecated empty state does not expose both tabs');
+expect(count($test['deprecated_empty_ui'][0]['items'] ?? []) === 3 && count($test['deprecated_empty_ui'][1]['items'] ?? []) === 3,'Deprecated empty state does not expose all tabs');
 expect(($test['deprecated_empty_ui'][1]['items'][1]['items'][0]['id'] ?? '') === 'accessibility-deprecated-empty-statistics-empty','Deprecated statistics empty state is invalid');
+expect(($test['deprecated_empty_ui'][1]['items'][2]['items'][3]['id'] ?? '') === 'accessibility-deprecated-empty-resolve-no-findings','Deprecated resolution empty state is invalid');
 
 $test['scores'] = [];
 foreach (\accessibility\Config::CATEGORIES as $test['category']) $test['scores'][$test['category']] = ['total'=>1,'success'=>1,'warning'=>0,'error'=>0];
@@ -218,22 +237,35 @@ $_POST = [];
 $_GET = [];
 include dirname(__DIR__).'/settings/info/accessibility.php';
 $test['ui'] = $settings['output']['lists']['accessibilityContent'] ?? [];
-expect(($test['ui']['items'][0]['type'] ?? '') === 'tabs' && count($test['ui']['items'][0]['tabs'] ?? []) === 2,'Accessibility admin tabs are invalid');
+expect(($test['ui']['items'][0]['type'] ?? '') === 'tabs' && count($test['ui']['items'][0]['tabs'] ?? []) === 3,'Accessibility admin tabs are invalid');
 $test['statistics_ui'] = $test['ui']['items'][0]['tabs'][1]['items'][0]['items'] ?? [];
 expect(array_column($test['statistics_ui'],'chart') === ['graph','graph','bars'],'Accessibility statistics charts are invalid');
 expect(array_keys($test['statistics_ui'][0]['values']['series'] ?? []) === ['reports'],'Accessibility report graph contains unrelated series');
 expect(array_keys($test['statistics_ui'][1]['values']['series'] ?? []) === \accessibility\Config::CATEGORIES,'Accessibility category graph contains unrelated series');
 expect(($test['statistics_ui'][2]['values']['max'] ?? 0) === 100 && array_keys($test['statistics_ui'][2]['values']['rows'][0] ?? []) === ['label','value','color'],'Per-page score chart contains unrelated values');
+$test['resolve_ui'] = $test['ui']['items'][0]['tabs'][2]['items'] ?? [];
+expect(($test['resolve_ui'][3]['type'] ?? '') === 'button' && ($test['resolve_ui'][3]['action'] ?? '') === 'request_resolution','Accessibility resolution action is missing');
 
 $settings = ['key'=>'accessibility-deprecated','output'=>[]];
 include dirname(__DIR__).'/deprecated/settings/info/accessibility.php';
 $test['deprecated_ui'] = $settings['output']['lists']['accessibility-deprecatedContent']['items'] ?? [];
-expect(($test['deprecated_ui'][0]['attributes']['role'] ?? '') === 'tablist' && array_column($test['deprecated_ui'][0]['items'],'description') === ['de:_accessibility_tab_overview','de:_accessibility_tab_statistics'],'Deprecated accessibility tabs are invalid');
+expect(($test['deprecated_ui'][0]['attributes']['role'] ?? '') === 'tablist' && array_column($test['deprecated_ui'][0]['items'],'description') === ['de:_accessibility_tab_overview','de:_accessibility_tab_statistics','de:_accessibility_tab_resolve'],'Deprecated accessibility tabs are invalid');
 $test['deprecated_statistics_ui'] = $test['deprecated_ui'][1]['items'][1]['items'][0]['items'] ?? [];
 expect(array_column($test['deprecated_statistics_ui'],'chart') === ['graph','graph','bars'],'Deprecated accessibility statistics charts are invalid');
 expect(array_keys($test['deprecated_statistics_ui'][0]['values']['series'] ?? []) === ['reports'],'Deprecated report graph contains unrelated series');
 expect(array_keys($test['deprecated_statistics_ui'][1]['values']['series'] ?? []) === \accessibility\Config::CATEGORIES,'Deprecated category graph contains unrelated series');
 expect(($test['deprecated_statistics_ui'][2]['values']['max'] ?? 0) === 100 && array_keys($test['deprecated_statistics_ui'][2]['values']['rows'][0] ?? []) === ['label','value','color'],'Deprecated per-page score chart contains unrelated values');
+expect(($test['deprecated_ui'][1]['items'][2]['items'][3]['actions']['load']['action'] ?? '') === 'request_resolution','Deprecated accessibility resolution action is missing');
+
+$settings = ['key'=>'accessibility-request','output'=>[]];
+$_POST = ['settings'=>1,'type'=>'accessibility-request','action'=>'request_resolution'];
+include dirname(__DIR__).'/settings/info/accessibility.php';
+$test['job'] = reset(TestJobs::$jobs);
+expect(($settings['output']['result']['result'] ?? false) === true && is_array($test['job']),'Accessibility layout job was not created');
+expect(str_starts_with((string) ($test['job']['key'] ?? ''),'accessibility-') && ($test['job']['source'] ?? '') === 'accessibility','Accessibility layout job identity is invalid');
+expect(str_contains((string) ($test['job']['todo_content'] ?? ''),'"selector": "main img"'),'Accessibility layout job lost finding details');
+expect(\accessibility\LayoutJob::request('de')['error'] === 'job_exists','A duplicate accessibility layout job was accepted');
+$_POST = [];
 
 foreach (['summary','pages','page:10-0-de'] as $test['mcp_id']) $test['mcp'][$test['mcp_id']] = \accessibility\McpView::read($test['mcp_id'],'de');
 expect($test['mcp']['summary']['coverage']['audited_pages'] === 1 && $test['mcp']['summary']['coverage']['audited_contexts'] === 2,'MCP summary coverage is invalid');

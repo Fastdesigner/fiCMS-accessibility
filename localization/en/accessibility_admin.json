@@ -112,5 +112,15 @@
     "_accessibility_statistics_report_history": "Generated reports",
     "_accessibility_statistics_reports": "Reports",
     "_accessibility_statistics_category_history": "Category score development",
-    "_accessibility_statistics_page_scores": "Scores of audited pages"
+    "_accessibility_statistics_page_scores": "Scores of audited pages",
+    "_accessibility_tab_resolve": "Resolve",
+    "_accessibility_resolve_intro": "The identified issues may originate in your website layout or content. You can involve your layout developer and revise affected content to resolve them.",
+    "_accessibility_resolve_service": "Fastdesign analyses the current audit results and resolves identified issues in your layout files. Remaining content issues are documented and may need to be corrected separately.",
+    "_accessibility_resolve_maintenance": "With a maintenance contract, your website is reviewed regularly. Without a maintenance contract, you can commission a paid analysis and resolution here.",
+    "_accessibility_resolve_button": "Commission paid resolution",
+    "_accessibility_resolve_confirm": "By submitting, you commission Fastdesign to perform a paid analysis and resolution of the identified layout issues.",
+    "_accessibility_resolve_active": "The job has been submitted to Fastdesign. Details of the work will be coordinated directly with Fastdesign.",
+    "_accessibility_resolve_no_findings": "The current report contains no warnings or failed checks.",
+    "_accessibility_job_title": "Resolve accessibility issues",
+    "_accessibility_job_description": "Analysis and resolution of the current accessibility report commissioned by the website operator."
 }

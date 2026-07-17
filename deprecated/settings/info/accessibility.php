@@ -19,8 +19,8 @@ if ($html['is_superviser'] != 1 || isset($_GET[$settings['key'].'action'])) retu
 
 $accessibility = [
 	'output'=>['lists'=>[]],
-	'entries'=>['overview'=>[],'statistics'=>[]],
-	'attributes'=>['overview'=>['classes'=>['forms__wrapper']],'statistics'=>['classes'=>['forms__wrapper']]],
+	'entries'=>['overview'=>[],'statistics'=>[],'resolve'=>[]],
+	'attributes'=>['overview'=>['classes'=>['forms__wrapper']],'statistics'=>['classes'=>['forms__wrapper']],'resolve'=>['classes'=>['forms__wrapper']]],
 	'tablist'=>[],'info'=>[],'statistics_items'=>[],'page_scores'=>[]
 ];
 if (!\accessibility\License::allowed()) {
@@ -35,6 +35,8 @@ if (!\accessibility\Repository::available()) {
 
 require_once PLUGINPATH.'/fiCMS-accessibility/deprecated/src/Overview.php';
 $accessibility['overview'] = \accessibility\DeprecatedOverview::current();
+if (isset($_POST['settings'],$_POST['type'],$_POST['action']) && $_POST['type'] == $settings['key'] && $_POST['action'] === 'request_resolution') $settings['output']['result'] = \accessibility\LayoutJob::request($user['language']);
+$accessibility['active_job'] = \accessibility\LayoutJob::active();
 $accessibility['metrics'] = \accessibility\DeprecatedOverview::metrics($accessibility['overview'],$user['language']);
 $accessibility['info'][] = [
 	'type'=>'statistics','chart'=>'pie',
@@ -84,9 +86,22 @@ if (!$accessibility['statistics_data']['days']) {
 	$accessibility['entries']['statistics'][] = ['id'=>$settings['key'].'Statistics','classes'=>['statistics__wrapper'],'items'=>$accessibility['statistics_items']];
 }
 
+$accessibility['entries']['resolve'][] = ['id'=>$settings['key'].'-resolve-intro','tag'=>'font','description'=>language__get($user['language'],'_accessibility_resolve_intro')];
+$accessibility['entries']['resolve'][] = ['id'=>$settings['key'].'-resolve-service','tag'=>'font','description'=>language__get($user['language'],'_accessibility_resolve_service')];
+$accessibility['entries']['resolve'][] = ['id'=>$settings['key'].'-resolve-maintenance','tag'=>'font','description'=>language__get($user['language'],'_accessibility_resolve_maintenance')];
+if ($accessibility['active_job']) $accessibility['entries']['resolve'][] = ['id'=>$settings['key'].'-resolve-active','tag'=>'font','description'=>language__get($user['language'],'_accessibility_resolve_active')];
+else if (\accessibility\LayoutJob::hasFindings($accessibility['overview'])) $accessibility['entries']['resolve'][] = [
+	'id'=>$settings['key'].'-resolve-button','tag'=>'button','classes'=>['system-button'],
+	'attributes'=>['type'=>'button','data-confirmation'=>language__get($user['language'],'_accessibility_resolve_confirm')],
+	'description'=>language__get($user['language'],'_accessibility_resolve_button'),
+	'actions'=>['load'=>['action'=>'request_resolution']]
+];
+else $accessibility['entries']['resolve'][] = ['id'=>$settings['key'].'-resolve-no-findings','tag'=>'font','description'=>language__get($user['language'],'_accessibility_resolve_no_findings')];
+
 $accessibility['tablist'] = [
 	'overview'=>language__get($user['language'],'_accessibility_tab_overview'),
-	'statistics'=>language__get($user['language'],'_accessibility_tab_statistics')
+	'statistics'=>language__get($user['language'],'_accessibility_tab_statistics'),
+	'resolve'=>language__get($user['language'],'_accessibility_tab_resolve')
 ];
 $accessibility['tabs'] = create__tablist($settings['key'],$accessibility['tablist'],$accessibility['entries'],$accessibility['attributes']);
 $accessibility['output']['lists'][$settings['key'].'Content'] = ['id'=>$settings['key'].'Content','items'=>[$accessibility['tabs']['tabs'],$accessibility['tabs']['panels']]];
