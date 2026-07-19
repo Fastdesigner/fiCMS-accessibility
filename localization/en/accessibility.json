@@ -1,0 +1,13 @@
+{
+	"_a11y_widget_layout": "Layout",
+	"_a11y_widget_layout_statement": "Conformance overview",
+	"_a11y_statement_conform": "accessible",
+	"_a11y_statement_limited": "partially accessible",
+	"_a11y_statement_note": "Automatically checked on %date% · %pages% pages monitored",
+	"_a11y_statement_cat_media_alt": "Alternative text for images and media",
+	"_a11y_statement_cat_navigatability": "Keyboard operation and navigation",
+	"_a11y_statement_cat_form_labels": "Labelling of form fields",
+	"_a11y_statement_cat_semantic": "Semantic markup of content",
+	"_a11y_statement_cat_readability": "Readability, text sizes and contrasts",
+	"_a11y_statement_cat_user_preferences": "Respecting user preferences"
+}

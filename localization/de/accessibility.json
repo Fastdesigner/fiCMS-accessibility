@@ -1,0 +1,13 @@
+{
+	"_a11y_widget_layout": "Layout",
+	"_a11y_widget_layout_statement": "Konformitätsübersicht",
+	"_a11y_statement_conform": "barrierefrei",
+	"_a11y_statement_limited": "teilweise barrierefrei",
+	"_a11y_statement_note": "Automatisiert geprüft am %date% · %pages% Seiten im Blick",
+	"_a11y_statement_cat_media_alt": "Alternativtexte für Bilder und Medien",
+	"_a11y_statement_cat_navigatability": "Tastaturbedienung und Navigation",
+	"_a11y_statement_cat_form_labels": "Beschriftung von Formularfeldern",
+	"_a11y_statement_cat_semantic": "Semantische Auszeichnung der Inhalte",
+	"_a11y_statement_cat_readability": "Lesbarkeit, Textgrößen und Kontraste",
+	"_a11y_statement_cat_user_preferences": "Berücksichtigung von Nutzer-Einstellungen"
+}

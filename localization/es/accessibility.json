@@ -1,0 +1,13 @@
+{
+	"_a11y_widget_layout": "Diseño",
+	"_a11y_widget_layout_statement": "Resumen de conformidad",
+	"_a11y_statement_conform": "accesible",
+	"_a11y_statement_limited": "parcialmente accesible",
+	"_a11y_statement_note": "Comprobado automáticamente el %date% · %pages% páginas supervisadas",
+	"_a11y_statement_cat_media_alt": "Textos alternativos para imágenes y medios",
+	"_a11y_statement_cat_navigatability": "Manejo por teclado y navegación",
+	"_a11y_statement_cat_form_labels": "Etiquetado de campos de formulario",
+	"_a11y_statement_cat_semantic": "Marcado semántico de los contenidos",
+	"_a11y_statement_cat_readability": "Legibilidad, tamaños de texto y contrastes",
+	"_a11y_statement_cat_user_preferences": "Respeto de las preferencias del usuario"
+}
