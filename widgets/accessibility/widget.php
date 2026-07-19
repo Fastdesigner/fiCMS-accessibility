@@ -23,7 +23,7 @@ $accessibility = [
 ];
 
 foreach ($accessibility['layout_paths'] as $accessibility['layout_path']) if (is_file($accessibility['layout_path'].'/frame.html')) { $accessibility['structure_file'] = $accessibility['layout_path'].'/frame.html'; break; }
-if ($accessibility['structure_file'] == '' || !class_exists('\\ficms\\Assessment')) {
+if ($accessibility['structure_file'] == '') {
 	$service['content'] = '';
 	unset($accessibility);
 	return;
