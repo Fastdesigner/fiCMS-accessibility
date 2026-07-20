@@ -7,7 +7,7 @@ function accessibility__test_focus() {
 	document.body.appendChild(el);
 	document.head.appendChild(style);
 
-	el.focus({ focusVisible: true });
+	el.focus({ preventScroll: true, focusVisible: true });
 
 	let computed = getComputedStyle(el);
 	let result = computed.outlineStyle !== 'none' && computed.outlineWidth !== '0px';
@@ -437,7 +437,7 @@ function accessibility__get_unique_name(el) {
 
 function accessibility__get_unique_selector(el) {
 	let better = ['mediaid','name','image'], parts = [], betterSel = '', idx = -1;
-	while (el && el.nodeType === 1 && el !== document.documentElement) {
+	while (el && el.nodeType === 1 && el.parentNode && el !== document.documentElement) {
 		let tag = el.tagName.toLowerCase();
 		if (el.id) { parts.push('#' + el.id); break; }
 		if (tag == 'form' && el.getAttribute('name')) { parts.push('form[name=\"' + el.getAttribute('name') + '\"]'); break; }
@@ -1011,20 +1011,24 @@ async function accessibility__init() {
 
 				if (selector === "*" || obj.matches(selector)) {
 					stats.checkRuns++;
-					let result = checkFunction(rendered ? stage.target(obj) : obj,obj,stage);
-					if (result.status !== "ignored") {
-						scores[name].total++;
-						scores[name][result.status]++;
-						if (result.status !== "success") {
-							if (!accessibility[result.status][result.reason]) accessibility[result.status][result.reason] = [];
-							accessibility[result.status][result.reason].push({
-								id: uniqueId(),
-								name: accessibility__get_unique_name(obj),
-								value: result.value ?? false,
-								image: result.image ?? false,
-								unique: accessibility__get_unique_selector(obj)
-							});
+					try {
+						let result = checkFunction(rendered ? stage.target(obj) : obj,obj,stage);
+						if (result.status !== "ignored") {
+							scores[name].total++;
+							scores[name][result.status]++;
+							if (result.status !== "success") {
+								if (!accessibility[result.status][result.reason]) accessibility[result.status][result.reason] = [];
+								accessibility[result.status][result.reason].push({
+									id: uniqueId(),
+									name: accessibility__get_unique_name(obj),
+									value: result.value ?? false,
+									image: result.image ?? false,
+									unique: accessibility__get_unique_selector(obj)
+								});
+							}
 						}
+					} catch (error) {
+						// Elemente, die während des Audits aus dem DOM entfernt wurden, dürfen das Gesamt-Audit nicht abbrechen
 					}
 				}
 			}));
@@ -1081,13 +1085,18 @@ async function accessibility__init() {
 
 async function accessibility__start() {
 	if (!document.body || !document.body.hasAttribute('data-loaded')) await new Promise(resolve => document.addEventListener('ficms:loaded',resolve,{once:true}));
-	let active = document.activeElement, scroll = {x:window.scrollX,y:window.scrollY};
+	let active = document.activeElement, scroll = {x:window.scrollX,y:window.scrollY}, interacted = false,
+		interaction = () => interacted = true, events = ['wheel','touchstart','pointerdown','keydown'];
+	events.forEach(event => window.addEventListener(event,interaction,{capture:true,passive:true}));
 	try {
 		return await accessibility__init();
 	} finally {
-		if (active && active !== document.body && active.isConnected && typeof active.focus === 'function') active.focus({preventScroll:true});
-		else if (document.activeElement && document.activeElement !== document.body && typeof document.activeElement.blur === 'function') document.activeElement.blur();
-		if (window.scrollX !== scroll.x || window.scrollY !== scroll.y) window.scrollTo(scroll.x,scroll.y);
+		events.forEach(event => window.removeEventListener(event,interaction,{capture:true}));
+		if (!interacted) {
+			if (active && active !== document.body && active.isConnected && typeof active.focus === 'function') active.focus({preventScroll:true});
+			else if (document.activeElement && document.activeElement !== document.body && typeof document.activeElement.blur === 'function') document.activeElement.blur();
+			if (window.scrollX !== scroll.x || window.scrollY !== scroll.y) window.scrollTo(scroll.x,scroll.y);
+		}
 	}
 }
 
