@@ -52,9 +52,18 @@ class Repository {
 			$contexts['contexts'][$key] = array_merge($envelope['context'],['index_file'=>$indexFile]);
 			ksort($contexts['contexts']);
 			return $contexts;
-		}) !== false) return true;
+		}) !== false) {
+			self::invalidateCaches();
+			return true;
+		}
 		self::removeAudit($indexFile,$resultFile);
 		return false;
+	}
+
+	// Push-Invalidierung: der Schreiber bumpt den Version-Key, Konsumenten (Statement-Widget)
+	// watchen ihn statt die Datenordner per mtime zu pollen
+	public static function invalidateCaches(): void {
+		if (isset($_SERVER['CacheDirector']) && is_object($_SERVER['CacheDirector']) && method_exists($_SERVER['CacheDirector'],'bumpVersion')) $_SERVER['CacheDirector']->bumpVersion('accessibility:data');
 	}
 
 	public static function healthScore(): int|false {
@@ -114,12 +123,19 @@ class Repository {
 			foreach ($files as $file) if (\ficms\Files::delete($file)) $deleted++;
 			if (empty($index['audits'])) $empty[$key] = (string) $context['index_file'];
 		}
-		if (!$empty) return $deleted;
+		if (!$empty) {
+			if ($deleted > 0) self::invalidateCaches();
+			return $deleted;
+		}
 		if (\ficms\Files::updateJson(Config::dataPath('contexts.json'),function($contexts) use ($empty) {
 			foreach (array_keys($empty) as $key) unset($contexts['contexts'][$key]);
 			return $contexts;
-		}) === false) return $deleted;
+		}) === false) {
+			if ($deleted > 0) self::invalidateCaches();
+			return $deleted;
+		}
 		foreach ($empty as $file) \ficms\Files::delete($file);
+		self::invalidateCaches();
 		return $deleted;
 	}
 
