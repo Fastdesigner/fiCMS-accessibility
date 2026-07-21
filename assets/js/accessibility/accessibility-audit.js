@@ -553,6 +553,8 @@ function accessibility__init_media_alt(el) {
 function accessibility__init_navigatability(el,source = el,stage = false) {
 	let focusable = source.matches('a, button, input, select, textarea, summary, [tabindex]');
 	if (focusable || typeof source.onclick === "function" || typeof source.onmousedown === "function" || typeof source.onmouseup === "function") {
+		// tabindex=-1 nimmt Elemente aus der Tastatur-Navigation (z.B. Honeypots) - keine Fokus-Ziele
+		if (source.hasAttribute("tabindex") && parseInt(source.getAttribute("tabindex")) < 0) return { status: "ignored" };
 		let style = window.getComputedStyle(el), tag = source.tagName.toLowerCase(), sourceLabel = document.querySelector(`label[for="${source.id}"]`) || source.closest("label"),
 			labelEl = stage ? stage.target(sourceLabel) : sourceLabel;
 		if (stage && stage.root && labelEl === sourceLabel) labelEl = null;
