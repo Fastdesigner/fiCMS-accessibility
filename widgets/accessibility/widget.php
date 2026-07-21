@@ -126,6 +126,7 @@ if ($accessibility['scores']) {
 }
 
 $service['content'] = $accessibility['content'];
-if ($accessibility['cache_entry']) $accessibility['cache_entry']->set($service['content'],$accessibility['definition']['meta']);
+// Leeren Zustand (noch keine Audits) nie cachen — er soll mit dem ersten Ergebnis sofort verschwinden
+if ($accessibility['cache_entry'] && $service['content'] !== '') $accessibility['cache_entry']->set($service['content'],$accessibility['definition']['meta']);
 
 unset($accessibility);
