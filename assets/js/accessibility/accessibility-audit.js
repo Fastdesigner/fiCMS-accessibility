@@ -632,7 +632,21 @@ function accessibility__init_readability(el,source = el) {
 	if (!textNodes.length) return {status: "ignored"};
 	if (!accessibility__text_rects(el).length || (typeof el.checkVisibility === 'function' && !el.checkVisibility({checkOpacity:true,checkVisibilityCSS:true}))) return {status: "ignored"};
 
-	let text = textNodes.map(n => n.nodeValue.trim()).join(" ");
+	// br- und Block-Grenzen zwischen den Textknoten sind Satzgrenzen — sonst verschmelzen
+	// Überschriften- und Adresszeilen ohne Satzzeichen zu Schein-Langsätzen
+	let segments = [], buffer = [];
+	[...el.childNodes].forEach(n => {
+		if (n.nodeType === Node.TEXT_NODE) {
+			if (n.nodeValue.trim().length) buffer.push(n.nodeValue.trim());
+			return;
+		}
+		if (n.nodeType === Node.ELEMENT_NODE && (n.tagName === 'BR' || window.getComputedStyle(n).display !== 'inline') && buffer.length) {
+			segments.push(buffer.join(" "));
+			buffer = [];
+		}
+	});
+	if (buffer.length) segments.push(buffer.join(" "));
+	let text = segments.join(". ");
 	if (!/[\p{L}\p{N}]/u.test(text)) return {status: "ignored"};
 	let sents = text.replace(/[.!?]+/g, '.').split('.').map(s => s.trim()).filter(Boolean),
 		longSents = sents.filter(s => s.split(/\s+/).length > 40).length;
