@@ -53,10 +53,8 @@ if (($accessibility['block_files'][$accessibility['layout']] ?? '') == '') {
 
 // Fragment-Cache: Output hängt an Block-Optionen (block:<id>), Sprache, den Templates und dem
 // Daten-Version-Key accessibility:data — den bumpt der Audit-Store (Repository::invalidateCaches)
-// bei jedem neuen/gelöschten Ergebnis. Kein mtime-Polling der Datenordner mehr.
-// Der Page-HTML-Cache watcht keine Fragment-Versionen — contexts.json als einzelne Datei-Dep
-// registrieren, damit die Besucherseite beim ersten neuen Audit ebenfalls invalidiert.
-if (isset($_SERVER['cache_html_watch']) && is_array($_SERVER['cache_html_watch'])) $_SERVER['cache_html_watch'][\accessibility\Config::dataPath('contexts.json')] = true;
+// bei jedem neuen/gelöschten Ergebnis. Kein mtime-Polling der Datenordner mehr. Der Page-HTML-Cache
+// braucht keine Daten-Dep: er speichert den Prä-Widget-Frame, widgets.php läuft auf jedem Request danach.
 $accessibility['block_id'] = (int) ($service['cache']['context']['block_id'] ?? ($accessibility['block']['id'] ?? 0));
 $accessibility['definition'] = [
 	'type'=>'fragment',
