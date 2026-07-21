@@ -1087,8 +1087,10 @@ async function accessibility__init() {
 
 async function accessibility__start() {
 	if (!document.body || !document.body.hasAttribute('data-loaded')) await new Promise(resolve => document.addEventListener('ficms:loaded',resolve,{once:true}));
-	let active = document.activeElement, scroll = {x:window.scrollX,y:window.scrollY}, interacted = false,
-		interaction = () => interacted = true, events = ['wheel','touchstart','pointerdown','keydown'];
+	// scroll zählt als Interaktion: Browser-Scroll-Restore, Anker-Sprünge und Scrollbar-Drag feuern keine wheel/pointer-Events;
+	// das Audit selbst scrollt nie (alle focus-Aufrufe mit preventScroll) — jede Positionsänderung ist extern und bleibt unangetastet
+	let active = document.activeElement, interacted = false,
+		interaction = () => interacted = true, events = ['wheel','touchstart','pointerdown','keydown','scroll'];
 	events.forEach(event => window.addEventListener(event,interaction,{capture:true,passive:true}));
 	try {
 		return await accessibility__init();
@@ -1097,13 +1099,12 @@ async function accessibility__start() {
 		if (!interacted) {
 			if (active && active !== document.body && active.isConnected && typeof active.focus === 'function') active.focus({preventScroll:true});
 			else if (document.activeElement && document.activeElement !== document.body && typeof document.activeElement.blur === 'function') document.activeElement.blur();
-			if (window.scrollX !== scroll.x || window.scrollY !== scroll.y) window.scrollTo(scroll.x,scroll.y);
 		}
 	}
 }
 
 export const AccessibilityAudit = {
-	version:'0.1.1',
+	version:'0.1.2',
 	run(options = {}) {
 		if (options.document && options.document !== document) throw new Error('Accessibility audit document mismatch');
 		return accessibility__start();

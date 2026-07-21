@@ -20,7 +20,7 @@ class Sampler {
 		if (!$forced && !helper__system_runtime('accessibility_audit',60,false,'seconds')) return false;
 
 		SessionContext::create($context);
-		$_SERVER['load_services']['accessibility'] = true;
+		$_SERVER['load_services']['accessibility_audit'] = true;
 		return true;
 	}
 }

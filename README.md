@@ -7,7 +7,7 @@ The first implementation is intentionally fiCMS-native. WordPress and TYPO3 inte
 ## Runtime flow
 
 1. `build/accessibility.php` selects an anonymous visitor request and records its short-lived server-side context.
-2. fiCMS loads `assets/js/services/accessibility.js` through the regular `load_services` mechanism.
+2. fiCMS loads `assets/js/services/accessibility_audit.js` through the regular `load_services` mechanism (the `accessibility` service name stays reserved for presentation assets like the statement widget CSS).
 3. The bootstrap imports the audit module and submits its result through the regular fiCMS Settings AJAX.
 4. `settings/info/accessibility.php` consumes the session context, validates and stores the result below `system/plugins/fiCMS-accessibility/data`.
 5. `health/accessibility.php` contributes the latest score to the `legal` Health category.
