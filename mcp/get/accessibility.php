@@ -2,13 +2,12 @@
 
 if (!$site['onsite']) return false;
 
-if ($mcp['mode'] === 'capabilities') return (($mcp['scope'] ?? 'user') === 'admin') ? [
-	'tool'=>'get',
-	'type'=>'accessibility',
-	'text'=>'use get("accessibility","summary") for the current automated audit overview, get("accessibility","pages") for audited page and viewport coverage, get("accessibility","page:<mid-tid-lid>") for concrete findings, and get("skill","accessibility") before making accessibility claims'
-] : false;
+if ($context->mode === 'describe') return [
+	'purpose'=>'Loads stored automated accessibility audit evidence. Use summary for the overview, pages for audited coverage, page:<mid-tid-lid> for concrete findings, and read the accessibility skill before making accessibility claims.',
+	'args'=>['id'=>'"summary", "pages", or "page:<mid-tid-lid>".'],
+	'scope'=>['admin']
+];
 
-if (($mcp['scope'] ?? 'user') !== 'admin') return ['error'=>'admin scope required.'];
 if (!\accessibility\Repository::available() || !\accessibility\License::allowed()) return ['error'=>'accessibility audits are not available.'];
 
-return \accessibility\McpView::read(trim(strval($get['id'])),mcp__task_language($mcp['task']) ?: (string) ($user['language'] ?? $site['default_language'] ?? 'en'));
+return \accessibility\McpView::read(trim(strval($context->args['id'] ?? '')),\mcp\Util::language($context->task) ?: (string) ($user['language'] ?? $site['default_language'] ?? 'en'));

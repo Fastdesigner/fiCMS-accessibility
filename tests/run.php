@@ -83,9 +83,24 @@ function format__date_relative(int $timestamp): string {
 	return 'date:'.$timestamp;
 }
 
-function mcp__task_language(array $task): string {
-	return (string) ($task['instruction_vars']['language'] ?? '');
+class TestMcpContext {
+	public string $mode = '';
+	public string $scope = 'user';
+	public array $task = [];
+	public array $args = [];
+
+	public function edits(): bool {
+		return false;
+	}
 }
+
+class TestMcpUtil {
+	public static function language(array $task): string {
+		return (string) ($task['instruction_vars']['language'] ?? '');
+	}
+}
+
+class_alias(TestMcpUtil::class,'mcp\Util');
 
 function statistics__step_label(string $language, int $timestamp): string {
 	return $language.':'.$timestamp;
@@ -277,14 +292,14 @@ expect($test['mcp']['page:10-0-de']['audits']['desktop']['findings']['error'][0]
 expect($test['mcp']['page:10-0-de']['audits']['desktop']['findings']['error'][0]['items'][0]['element'] === 'img' && $test['mcp']['page:10-0-de']['audits']['desktop']['findings']['error'][0]['items'][0]['value'] === false,'MCP page detail exposed media data');
 expect(!isset($test['mcp']['page:10-0-de']['audits']['desktop']['stats']['private']),'MCP page detail exposed unknown statistics');
 
-$mcp = ['mode'=>'capabilities','scope'=>'admin','task'=>[]];
-$test['capability'] = include dirname(__DIR__).'/mcp/get/accessibility.php';
-expect($test['capability']['tool'] === 'get' && $test['capability']['type'] === 'accessibility','Admin MCP capability is missing');
-$mcp['scope'] = 'user';
-$test['user_capability'] = include dirname(__DIR__).'/mcp/get/accessibility.php';
-expect($test['user_capability'] === false,'Accessibility MCP capability leaked into user scope');
-$mcp = ['mode'=>'call','scope'=>'admin','task'=>['instruction_vars'=>['language'=>'de']]];
-$get = ['id'=>'summary'];
+$context = new TestMcpContext();
+$context->mode = 'describe';
+$test['descriptor'] = include dirname(__DIR__).'/mcp/get/accessibility.php';
+expect($test['descriptor']['scope'] === ['admin'] && isset($test['descriptor']['purpose'],$test['descriptor']['args']['id']),'Admin MCP descriptor is invalid');
+$context->mode = 'call';
+$context->scope = 'admin';
+$context->task = ['instruction_vars'=>['language'=>'de']];
+$context->args = ['id'=>'summary'];
 $test['handler'] = include dirname(__DIR__).'/mcp/get/accessibility.php';
 expect($test['handler']['type'] === 'accessibility' && $test['handler']['id'] === 'summary','Accessibility MCP handler did not return the summary view');
 
