@@ -25,7 +25,7 @@ final class McpView {
 				'last'=>(int) $assessment['last']
 			],
 			'finding_groups'=>self::findingGroups($rows,$language),
-			'recommended_calls'=>['get("accessibility","pages")','get("accessibility","page:<mid-tid-lid>")','get("skill","accessibility")'],
+			'recommended_calls'=>['get("accessibility","pages")','get("accessibility","page:<mid-tid-lid>")','skill("accessibility")'],
 			'limitations'=>self::limitations()
 		];
 	}

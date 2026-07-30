@@ -3,7 +3,7 @@
 if (!$site['onsite']) return false;
 
 if ($context->mode === 'describe') return [
-	'purpose'=>'Loads stored automated accessibility audit evidence. Use summary for the overview, pages for audited coverage, page:<mid-tid-lid> for concrete findings, and read the accessibility skill before making accessibility claims.',
+	'purpose'=>'Loads stored automated accessibility audit evidence. Use summary for the overview, pages for audited coverage, page:<mid-tid-lid> for concrete findings, and read skill("accessibility") before making accessibility claims.',
 	'args'=>['id'=>'"summary", "pages", or "page:<mid-tid-lid>".'],
 	'scope'=>['admin']
 ];

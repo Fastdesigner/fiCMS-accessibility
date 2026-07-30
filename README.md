@@ -33,7 +33,7 @@ The Core discovers the plugin's admin-only `accessibility` get type automaticall
 get("accessibility", "summary")
 get("accessibility", "pages")
 get("accessibility", "page:10-0-de")
-get("skill", "accessibility")
+skill("accessibility")
 ```
 
 The responses expose stored audit coverage, freshness and limitations so agents can distinguish an automated sampled finding from a compliance statement.
