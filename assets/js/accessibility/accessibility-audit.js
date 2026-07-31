@@ -8,14 +8,15 @@ function accessibility__test_focus() {
 	document.head.appendChild(style);
 
 	el.focus({ preventScroll: true, focusVisible: true });
-
-	let computed = getComputedStyle(el);
-	let result = computed.outlineStyle !== 'none' && computed.outlineWidth !== '0px';
+	let result = {forced:el.matches(':focus-visible')};
+	el.blur();
+	el.focus({ preventScroll: true, focusVisible: false });
+	result.suppressed = !el.matches(':focus-visible');
 
 	el.remove();
 	style.remove();
 
-	return result;
+	return result.forced && result.suppressed;
 }
 
 function accessibility__collect_motion_preference_rules(preference) {

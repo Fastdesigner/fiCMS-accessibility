@@ -46,7 +46,7 @@ Consequences:
 - Open/closed `details` and `dialog` descendants are inspected through a temporary rendered clone, but arbitrary application states are not exhaustively exercised.
 - Admin UI, hidden, disabled, `aria-hidden`, and non-rendered elements are excluded from the element traversal.
 
-## Checks performed by engine 0.1.1
+## Checks performed by engine 0.1.2
 
 ### Media
 
