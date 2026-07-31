@@ -4,7 +4,7 @@
   "type": "thirdparty",
   "system": false,
   "description": "Automated accessibility audits, health scores and reports for fiCMS.",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "autoload": {
     "psr-4": {
       "accessibility\\": "src/"

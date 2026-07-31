@@ -43,7 +43,10 @@ $accessibility['metrics']->statistics('score','pie',\accessibility\Overview::met
 ]]);
 foreach ($accessibility['assessment']['total'] as $key => $value) $accessibility['metrics']->statistics($key,'info',['value'=>(int) $value,'label'=>language__get($user['language'],'_accessibility_'.$key)],['id'=>$settings['key'].'_accessibility_'.$key]);
 $accessibility['findings'] = $accessibility['overview_tab']->listing('findings',['kind'=>'wrapper']);
-if ($accessibility['ui']->assessmentFindings($accessibility['findings'],$accessibility['assessment']) == 0) $accessibility['findings']->text('empty',language__get($user['language'],'_accessibility_no_results_yet'));
+if ($accessibility['ui']->assessmentFindings($accessibility['findings'],$accessibility['assessment']) == 0) $accessibility['findings']->text('empty',language__get(
+	$user['language'],
+	$accessibility['assessment']['count'] > 0 ? '_accessibility_resolve_no_findings' : '_accessibility_no_results_yet'
+));
 $accessibility['overview_tab']->text('summary',language__get_parsed($user['language'],'_accessibility_summary',[
 	'pages'=>$accessibility['assessment']['count'],
 	'last'=>$accessibility['assessment']['last'] ? format__date_relative($accessibility['assessment']['last']) : '-'

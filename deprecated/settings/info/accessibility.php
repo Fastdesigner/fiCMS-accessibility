@@ -46,7 +46,10 @@ $accessibility['info'][] = [
 foreach ($accessibility['overview']['total'] as $key => $value) $accessibility['info'][] = ['id'=>$settings['key'].'_accessibility_'.$key,'type'=>'statistics','chart'=>'info','values'=>['value'=>(int) $value,'label'=>language__get($user['language'],'_accessibility_'.$key)]];
 $accessibility['entries']['overview'][] = ['id'=>$settings['key'].'Info','classes'=>['statistics__wrapper'],'items'=>$accessibility['info']];
 $accessibility['items'] = \accessibility\DeprecatedOverview::settingsList($accessibility['overview'],$user['language']);
-if (!$accessibility['items']) $accessibility['items'][] = ['id'=>$settings['key'].'-noresult','tag'=>'font','description'=>language__get($user['language'],'_accessibility_no_results_yet')];
+if (!$accessibility['items']) $accessibility['items'][] = ['id'=>$settings['key'].'-noresult','tag'=>'font','description'=>language__get(
+	$user['language'],
+	$accessibility['overview']['count'] > 0 ? '_accessibility_resolve_no_findings' : '_accessibility_no_results_yet'
+)];
 $accessibility['entries']['overview'][] = ['id'=>$settings['key'].'Result','classes'=>['forms__wrapper'],'items'=>$accessibility['items']];
 $accessibility['entries']['overview'][] = [
 	'id'=>$settings['key'].'Summary','tag'=>'font',
