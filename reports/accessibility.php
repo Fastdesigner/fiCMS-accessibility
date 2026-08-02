@@ -18,6 +18,7 @@ if ($accessibility['latest'] === false || $accessibility['overview']['count'] ==
 	return;
 }
 $accessibility['previous'] = \accessibility\Overview::current($accessibility['latest']);
+$accessibility['page_scores'] = \accessibility\Statistics::pageScores();
 
 foreach ($reports['recipients'] as $accessibility['email'] => $accessibility['value']) {
 	$accessibility['last'] = is_numeric($accessibility['value']['report']['last'] ?? null) ? (int) $accessibility['value']['report']['last'] : 0;
@@ -64,14 +65,18 @@ foreach ($reports['recipients'] as $accessibility['email'] => $accessibility['va
 		$accessibility['list'][] = ['feature'=>'bars','data'=>['titlekey'=>'_reports_issues_by_category','title'=>'','value'=>'','valuecolor'=>'','delta'=>'','row'=>$accessibility['rows']]];
 	}
 
-	foreach ($accessibility['notify_types'] as $accessibility['severity']) foreach ($accessibility['overview']['findings'][$accessibility['severity']] as $accessibility['rule'] => $accessibility['entries']) {
-		$accessibility['items'] = [];
-		foreach ($accessibility['entries'] as $accessibility['entry']) $accessibility['items'][] = reports__issue_item($accessibility['lang'],$accessibility['rule'],$accessibility['entry']);
-		$accessibility['list'][] = ['feature'=>'issue','data'=>[
-			'border'=>($accessibility['severity'] == 'error') ? '#c62828' : '#f57c00',
-			'titlekey'=>$accessibility['rule'].'_headline','desckey'=>$accessibility['rule'],'item'=>$accessibility['items']
-		]];
+	$accessibility['rows'] = [];
+	foreach ($accessibility['page_scores'] as $accessibility['page']) {
+		$accessibility['rows'][] = [
+			'name'=>$accessibility['page']['label'],
+			'width'=>$accessibility['page']['value'],
+			'rest'=>100 - $accessibility['page']['value'],
+			'color'=>reports__score_color($accessibility['page']['value']),
+			'num'=>$accessibility['page']['value'].'%',
+			'sub'=>''
+		];
 	}
+	if ($accessibility['rows']) $accessibility['list'][] = ['feature'=>'bars','data'=>['titlekey'=>'_accessibility_statistics_page_scores','title'=>'','value'=>'','valuecolor'=>'','delta'=>'','row'=>$accessibility['rows']]];
 
 	$reports['items'][$accessibility['email']] = ['list'=>$accessibility['list']];
 }
