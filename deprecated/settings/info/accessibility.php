@@ -61,7 +61,7 @@ $accessibility['entries']['overview'][] = [
 ];
 if ($accessibility['overview']['count'] > 0) $accessibility['entries']['overview'][] = [
 	'id'=>$settings['key'].'-reaudit-button','tag'=>'button','classes'=>['system-button'],
-	'attributes'=>['type'=>'button','data-confirmation'=>language__get($user['language'],'_accessibility_reaudit_confirm')],
+	'attributes'=>['type'=>'button'],
 	'description'=>language__get($user['language'],'_accessibility_reaudit_button'),
 	'actions'=>['load'=>['action'=>'request_reaudit']]
 ];

@@ -1,6 +1,5 @@
 {
     "_accessibility_reaudit_button": "Volver a auditar todas las páginas",
-    "_accessibility_reaudit_confirm": "Todos los estados de auditoría guardados (escritorio y móvil) se marcarán como obsoletos y se recopilarán de nuevo automáticamente en las próximas visitas. El historial existente se conserva. ¿Continuar?",
     "_accessibility_nested_interactive_headline": "Elementos interactivos anidados",
     "_accessibility_nested_interactive": "Un control interactivo (enlace, botón, `summary` …) contiene otro elemento enfocable. Las tecnologías de asistencia no pueden separar claramente las dos funciones (WCAG 4.1.2).",
     "_settings_menu_accessibility": "Accesibilidad",

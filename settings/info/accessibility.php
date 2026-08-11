@@ -54,8 +54,7 @@ $accessibility['overview_tab']->text('summary',language__get_parsed($user['langu
 ]),['id'=>$settings['key'].'Summary','html'=>true]);
 if ($accessibility['assessment']['count'] > 0) $accessibility['overview_tab']->button('reaudit-button',[
 	'label'=>language__get($user['language'],'_accessibility_reaudit_button'),
-	'action'=>'request_reaudit',
-	'confirm'=>language__get($user['language'],'_accessibility_reaudit_confirm')
+	'action'=>'request_reaudit'
 ]);
 
 $accessibility['statistics_tab'] = $accessibility['ui']->tab('statistics',['label'=>language__get($user['language'],'_accessibility_tab_statistics')]);
