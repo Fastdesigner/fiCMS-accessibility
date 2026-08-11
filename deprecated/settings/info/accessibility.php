@@ -36,6 +36,7 @@ if (!\accessibility\Repository::available()) {
 require_once PLUGINPATH.'/fiCMS-accessibility/deprecated/src/Overview.php';
 $accessibility['overview'] = \accessibility\DeprecatedOverview::current();
 if (isset($_POST['settings'],$_POST['type'],$_POST['action']) && $_POST['type'] == $settings['key'] && $_POST['action'] === 'request_resolution') $settings['output']['result'] = \accessibility\LayoutJob::request($user['language']);
+if (isset($_POST['settings'],$_POST['type'],$_POST['action']) && $_POST['type'] == $settings['key'] && $_POST['action'] === 'request_reaudit') $settings['output']['result'] = ['result'=>\accessibility\Repository::requestReaudit()];
 $accessibility['active_job'] = \accessibility\LayoutJob::active();
 $accessibility['metrics'] = \accessibility\DeprecatedOverview::metrics($accessibility['overview'],$user['language']);
 $accessibility['info'][] = [
@@ -57,6 +58,12 @@ $accessibility['entries']['overview'][] = [
 		'pages'=>$accessibility['overview']['count'],
 		'last'=>$accessibility['overview']['last'] ? format__date_relative($accessibility['overview']['last']) : '-'
 	])
+];
+if ($accessibility['overview']['count'] > 0) $accessibility['entries']['overview'][] = [
+	'id'=>$settings['key'].'-reaudit-button','tag'=>'button','classes'=>['system-button'],
+	'attributes'=>['type'=>'button','data-confirmation'=>language__get($user['language'],'_accessibility_reaudit_confirm')],
+	'description'=>language__get($user['language'],'_accessibility_reaudit_button'),
+	'actions'=>['load'=>['action'=>'request_reaudit']]
 ];
 
 \accessibility\Statistics::sync();
