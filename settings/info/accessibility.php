@@ -31,6 +31,7 @@ if (!\accessibility\Repository::available()) return;
 
 $accessibility['assessment'] = \accessibility\Overview::current();
 if (isset($_POST['settings'],$_POST['type'],$_POST['action']) && $_POST['type'] == $settings['key'] && $_POST['action'] === 'request_resolution') $settings['output']['result'] = \accessibility\LayoutJob::request($user['language']);
+if (isset($_POST['settings'],$_POST['type'],$_POST['action']) && $_POST['type'] == $settings['key'] && $_POST['action'] === 'request_reaudit') $settings['output']['result'] = ['result'=>\accessibility\Repository::requestReaudit()];
 $accessibility['active_job'] = \accessibility\LayoutJob::active();
 $accessibility['ui'] = new \ficms\Ui($settings['key'],'accessibility',$user['language']);
 $accessibility['overview_tab'] = $accessibility['ui']->tab('overview',['label'=>language__get($user['language'],'_accessibility_tab_overview')]);
@@ -51,6 +52,11 @@ $accessibility['overview_tab']->text('summary',language__get_parsed($user['langu
 	'pages'=>$accessibility['assessment']['count'],
 	'last'=>$accessibility['assessment']['last'] ? format__date_relative($accessibility['assessment']['last']) : '-'
 ]),['id'=>$settings['key'].'Summary','html'=>true]);
+if ($accessibility['assessment']['count'] > 0) $accessibility['overview_tab']->button('reaudit-button',[
+	'label'=>language__get($user['language'],'_accessibility_reaudit_button'),
+	'action'=>'request_reaudit',
+	'confirm'=>language__get($user['language'],'_accessibility_reaudit_confirm')
+]);
 
 $accessibility['statistics_tab'] = $accessibility['ui']->tab('statistics',['label'=>language__get($user['language'],'_accessibility_tab_statistics')]);
 \accessibility\Statistics::sync();

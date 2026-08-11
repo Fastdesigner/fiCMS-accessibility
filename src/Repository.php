@@ -8,8 +8,26 @@ class Repository {
 	}
 
 	public static function isFresh(array $context, int $days): bool {
-		foreach (self::index($context)['audits'] ?? [] as $audit) return (int) ($audit['audit_time'] ?? 0) >= self::now() - ($days * 86400);
+		$minimum = max(self::now() - ($days * 86400),self::reauditRequested());
+		foreach (self::index($context)['audits'] ?? [] as $audit) return (int) ($audit['audit_time'] ?? 0) >= $minimum;
 		return false;
+	}
+
+	// Admin-Anforderung: alle Kontexte (Desktop und Mobil) gelten ab jetzt als veraltet
+	// und werden bei den naechsten Besuchen neu erhoben; die Historie bleibt unangetastet
+	public static function requestReaudit(): bool {
+		if (!self::available()) return false;
+		$now = self::now();
+		if (\ficms\Files::updateJson(Config::dataPath('contexts.json'),function($contexts) use ($now) {
+			$contexts['reaudit_requested'] = $now;
+			return $contexts;
+		}) === false) return false;
+		self::invalidateCaches();
+		return true;
+	}
+
+	public static function reauditRequested(): int {
+		return (int) (\ficms\Files::readJson(Config::dataPath('contexts.json'))['reaudit_requested'] ?? 0);
 	}
 
 	public static function store(Result $result): bool {

@@ -46,7 +46,7 @@ Consequences:
 - Open/closed `details` and `dialog` descendants are inspected through a temporary rendered clone, but arbitrary application states are not exhaustively exercised.
 - Admin UI, hidden, disabled, `aria-hidden`, and non-rendered elements are excluded from the element traversal.
 
-## Checks performed by engine 0.1.2
+## Checks performed by engine 0.1.3
 
 ### Media
 
@@ -58,6 +58,7 @@ Consequences:
 ### Keyboard and navigation
 
 - Empty links: require a usable accessible label.
+- Nested interactive controls: error when an interactive control (link, button, `summary`, select, textarea, or a widget role) contains another focusable element. Focusable scroll regions (`tabindex` without a widget role) may contain links.
 - Elements with inline mouse handlers: require keyboard support and warn when a semantic role is absent.
 - Interactive targets: warn below 16 x 16 CSS pixels or 576 square pixels, with an associated label included in the target union where available.
 - Fixed interactive elements: detect coverage by another fixed pointer-active element at their corners.

@@ -1,4 +1,8 @@
 {
+    "_accessibility_reaudit_button": "Alle Seiten erneut prüfen",
+    "_accessibility_reaudit_confirm": "Alle gespeicherten Prüfstände (Desktop und Mobil) werden als veraltet markiert und bei den nächsten Besuchen automatisch neu erhoben. Die bisherige Historie bleibt erhalten. Fortfahren?",
+    "_accessibility_nested_interactive_headline": "Verschachtelte interaktive Elemente",
+    "_accessibility_nested_interactive": "Ein interaktives Steuerelement (Link, Button, `summary` …) enthält ein weiteres fokussierbares Element. Assistenztechnologien können die beiden Funktionen nicht sauber trennen (WCAG 4.1.2).",
     "_settings_menu_accessibility": "Barrierefreiheit",
     "_reports_accessibility": "Barrierefreiheit",
     "_reports_accessibility_description": "Der Barrierefreiheits-Report fasst wiederkehrende Probleme auf Ihren Seiten zusammen und hilft, die wichtigsten Korrekturen zu priorisieren.",

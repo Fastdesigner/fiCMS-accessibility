@@ -1,4 +1,8 @@
 {
+    "_accessibility_reaudit_button": "Ricontrolla tutte le pagine",
+    "_accessibility_reaudit_confirm": "Tutti gli stati di audit salvati (desktop e mobile) verranno contrassegnati come obsoleti e raccolti di nuovo automaticamente nelle prossime visite. La cronologia esistente viene mantenuta. Continuare?",
+    "_accessibility_nested_interactive_headline": "Elementi interattivi annidati",
+    "_accessibility_nested_interactive": "Un controllo interattivo (link, pulsante, `summary` …) contiene un altro elemento focalizzabile. Le tecnologie assistive non possono separare chiaramente le due funzioni (WCAG 4.1.2).",
     "_settings_menu_accessibility": "Accessibilità",
     "_reports_accessibility": "Accessibilità",
     "_reports_accessibility_description": "Il report sull'accessibilità riassume i problemi ricorrenti nelle tue pagine e aiuta a dare priorità alle correzioni.",

@@ -556,6 +556,13 @@ function accessibility__init_navigatability(el,source = el,stage = false) {
 	if (focusable || typeof source.onclick === "function" || typeof source.onmousedown === "function" || typeof source.onmouseup === "function") {
 		// tabindex=-1 nimmt Elemente aus der Tastatur-Navigation (z.B. Honeypots) - keine Fokus-Ziele
 		if (source.hasAttribute("tabindex") && parseInt(source.getAttribute("tabindex")) < 0) return { status: "ignored" };
+
+		// Verschachtelte interaktive Steuerelemente (WCAG 4.1.2): nur echte Bedienelemente als Container
+		// werten - fokussierbare Scrollregionen ([tabindex] ohne Widget-Rolle) duerfen Links enthalten
+		if (source.matches('a, button, summary, select, textarea, [role="button"], [role="link"], [role="tab"], [role="switch"], [role="checkbox"], [role="menuitem"]')) {
+			let nested = source.querySelector('a[href], button, input, select, textarea, summary, [tabindex]:not([tabindex^="-"])');
+			if (nested) return { status: "error", reason: "_accessibility_nested_interactive", value: nested.tagName.toLowerCase() };
+		}
 		let style = window.getComputedStyle(el), tag = source.tagName.toLowerCase(), sourceLabel = document.querySelector(`label[for="${source.id}"]`) || source.closest("label"),
 			labelEl = stage ? stage.target(sourceLabel) : sourceLabel;
 		if (stage && stage.root && labelEl === sourceLabel) labelEl = null;
@@ -1119,7 +1126,7 @@ async function accessibility__start() {
 }
 
 export const AccessibilityAudit = {
-	version:'0.1.2',
+	version:'0.1.3',
 	run(options = {}) {
 		if (options.document && options.document !== document) throw new Error('Accessibility audit document mismatch');
 		return accessibility__start();
