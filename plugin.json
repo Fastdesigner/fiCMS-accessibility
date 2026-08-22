@@ -9,5 +9,8 @@
     "psr-4": {
       "accessibility\\": "src/"
     }
-  }
+  },
+  "requires": [
+    "ficms\\Runtime::check"
+  ]
 }
