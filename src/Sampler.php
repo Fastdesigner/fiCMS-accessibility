@@ -17,7 +17,7 @@ class Sampler {
 		];
 		$forced = (int) ($html['is_developer'] ?? 0) === 1 && isset($_GET['fiCMSaccessibility']);
 		if ($context['mid'] <= 0 || $context['lid'] === '' || (!$forced && Repository::isFresh($context,Config::freshnessDays()))) return false;
-		if (!$forced && !helper__system_runtime('accessibility_audit',60,false,'seconds')) return false;
+		if (!$forced && !\ficms\Runtime::check('accessibility_audit',60,false,'seconds')) return false;
 
 		SessionContext::create($context);
 		$_SERVER['load_services']['accessibility_audit'] = true;
