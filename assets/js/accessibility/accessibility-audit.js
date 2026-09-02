@@ -560,7 +560,8 @@ function accessibility__init_navigatability(el,source = el,stage = false) {
 		// Verschachtelte interaktive Steuerelemente (WCAG 4.1.2): nur echte Bedienelemente als Container
 		// werten - fokussierbare Scrollregionen ([tabindex] ohne Widget-Rolle) duerfen Links enthalten
 		if (source.matches('a, button, summary, select, textarea, [role="button"], [role="link"], [role="tab"], [role="switch"], [role="checkbox"], [role="menuitem"]')) {
-			let nested = source.querySelector('a[href], button, input, select, textarea, summary, [tabindex]:not([tabindex^="-"])');
+			let nested = Array.from(source.querySelectorAll('a[href], button, input, select, textarea, summary, [tabindex]:not([tabindex^="-"])'))
+				.find(node => typeof node.checkVisibility !== 'function' || node.checkVisibility());
 			if (nested) return { status: "error", reason: "_accessibility_nested_interactive", value: nested.tagName.toLowerCase() };
 		}
 		let style = window.getComputedStyle(el), tag = source.tagName.toLowerCase(), sourceLabel = document.querySelector(`label[for="${source.id}"]`) || source.closest("label"),
