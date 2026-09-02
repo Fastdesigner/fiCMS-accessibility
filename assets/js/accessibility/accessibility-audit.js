@@ -633,9 +633,6 @@ function accessibility__init_navigatability(el,source = el,stage = false) {
 }
 
 function accessibility__init_readability(el,source = el) {
-	let cs = window.getComputedStyle(el), fs = parseFloat(cs.fontSize),
-		weight = parseInt(cs.fontWeight), isLargeText = (fs >= 24) || (fs >= 18.66 && weight >= 700);
-
 	let textNodes = [...el.childNodes].filter(n => n.nodeType === Node.TEXT_NODE && n.nodeValue.trim().length);
 	if (!textNodes.length) return {status: "ignored"};
 	if (!accessibility__text_rects(el).length || (typeof el.checkVisibility === 'function' && !el.checkVisibility({checkOpacity:true,checkVisibilityCSS:true}))) return {status: "ignored"};
@@ -659,7 +656,6 @@ function accessibility__init_readability(el,source = el) {
 	let sents = text.replace(/[.!?]+/g, '.').split('.').map(s => s.trim()).filter(Boolean),
 		longSents = sents.filter(s => s.split(/\s+/).length > 40).length;
 
-	if (fs < 16) return {status: "warning", reason: "_accessibility_text_too_small"};
 	if (longSents > 0) return {status: "warning", reason: "_accessibility_text_too_long"};
 
 	let colors = fiCMS.accessibility.contrastColors.get(source) || helper__get_contrast_colors(el), captured = fiCMS.accessibility.contrastPixels.get(source),
@@ -853,6 +849,110 @@ function accessibility__check_user_preferences(elements, scores, accessibility) 
 			unique:accessibility__get_unique_selector(obj)
 		});
 	});
+}
+
+const ACCESSIBILITY_ROBUSTNESS_PASSES = [
+	{
+		reason:'_accessibility_text_resize_clipped',
+		status:'warning',
+		css:':root{font-size:200% !important}'
+	},
+	{
+		reason:'_accessibility_text_spacing_clipped',
+		status:'error',
+		css:'*,*::before,*::after{line-height:1.5 !important;letter-spacing:0.12em !important;word-spacing:0.16em !important}p{margin-bottom:2em !important}'
+	}
+];
+
+function accessibility__clipping_ancestor(el) {
+	let node = el.parentElement;
+	while (node && node !== document.documentElement) {
+		let cs = window.getComputedStyle(node);
+		if (cs.overflowX === 'hidden' || cs.overflowX === 'clip' || cs.overflowY === 'hidden' || cs.overflowY === 'clip') return node;
+		node = node.parentElement;
+	}
+	return null;
+}
+
+function accessibility__overflows_clip(el, clip) {
+	let cs = window.getComputedStyle(clip), rect = el.getBoundingClientRect(), box = clip.getBoundingClientRect();
+	if ((cs.overflowX === 'hidden' || cs.overflowX === 'clip') && (rect.right > box.right + 1 || rect.left < box.left - 1)) return true;
+	if ((cs.overflowY === 'hidden' || cs.overflowY === 'clip') && (rect.bottom > box.bottom + 1 || rect.top < box.top - 1)) return true;
+	return false;
+}
+
+function accessibility__robustness_animated(el, clip) {
+	let node = el;
+	while (node) {
+		if (accessibility__has_motion_animation(window.getComputedStyle(node))) return true;
+		if (node === clip) break;
+		node = node.parentElement;
+	}
+	return false;
+}
+
+function accessibility__robustness_candidates(elements) {
+	let seen = new Set(), candidates = [];
+	elements.forEach(({obj}) => {
+		if (!obj || obj.nodeType !== 1 || seen.has(obj)) return;
+		if (typeof obj.checkVisibility === 'function' && !obj.checkVisibility()) return;
+		if (!accessibility__text_rects(obj).length) return;
+		let clip = accessibility__clipping_ancestor(obj);
+		if (!clip) return;
+		if (accessibility__robustness_animated(obj, clip)) return;
+		seen.add(obj);
+		candidates.push({el:obj, clip:clip});
+	});
+	return candidates;
+}
+
+function accessibility__robustness_pass(candidates, css) {
+	let before = candidates.map(entry => accessibility__overflows_clip(entry.el, entry.clip));
+	let style = document.createElement('style');
+	style.setAttribute('data-ficms-accessibility-robustness','');
+	style.textContent = css;
+	let broke = [];
+	try {
+		document.head.appendChild(style);
+		void document.documentElement.offsetHeight;
+		candidates.forEach((entry, i) => {
+			if (!before[i] && accessibility__overflows_clip(entry.el, entry.clip)) broke.push(entry);
+		});
+	} finally {
+		style.remove();
+		void document.documentElement.offsetHeight;
+	}
+	return broke;
+}
+
+function accessibility__check_text_robustness(elements, scores, accessibility) {
+	let candidates = accessibility__robustness_candidates(elements);
+	if (typeof scores.readability === 'undefined') scores.readability = {total:0,success:0,warning:0,error:0};
+	if (!candidates.length) return;
+
+	let scrollLeft = window.scrollX, scrollTop = window.scrollY;
+	try {
+		ACCESSIBILITY_ROBUSTNESS_PASSES.forEach(pass => {
+			let broke = accessibility__robustness_pass(candidates, pass.css);
+			scores.readability.total++;
+			if (!broke.length) {
+				scores.readability.success++;
+				return;
+			}
+			let status = pass.status || 'error';
+			scores.readability[status]++;
+			if (!accessibility[status][pass.reason]) accessibility[status][pass.reason] = [];
+			broke.forEach(entry => accessibility[status][pass.reason].push({
+				id:uniqueId(),
+				name:accessibility__get_unique_name(entry.el),
+				value:accessibility__get_unique_name(entry.clip),
+				image:false,
+				unique:accessibility__get_unique_selector(entry.el)
+			}));
+		});
+	} finally {
+		if (window.scrollX !== scrollLeft || window.scrollY !== scrollTop) window.scrollTo(scrollLeft, scrollTop);
+	}
 }
 
 function accessibility__init_headlines(el) {
@@ -1063,6 +1163,8 @@ async function accessibility__init() {
 
 	// Bewegungspräferenzen nach dem zustandsabhängigen DOM-Traversal prüfen.
 	accessibility__check_user_preferences(elements,scores,accessibility);
+
+	accessibility__check_text_robustness(elements,scores,accessibility);
 
 	// Landmark-Regeln prüfen
 	let landmarkRules = {
