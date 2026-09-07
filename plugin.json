@@ -4,13 +4,14 @@
   "type": "thirdparty",
   "system": false,
   "description": "Automated accessibility audits, health scores and reports for fiCMS.",
-  "version": "0.1.6",
+  "version": "0.2.0",
   "autoload": {
     "psr-4": {
       "accessibility\\": "src/"
     }
   },
   "requires": [
+    "ficms\\Ui\\Node::dialog",
     "ficms\\Runtime::check"
   ]
 }
