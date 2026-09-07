@@ -4,12 +4,10 @@ namespace accessibility;
 
 class Overview {
 	public static function current(int $before = 0): array {
-		if (!class_exists('\\ficms\\Assessment')) return self::deprecated()::current($before);
 		return self::summarize(Repository::rows($before));
 	}
 
 	public static function summarize(array $rows): array {
-		if (!class_exists('\\ficms\\Assessment')) return self::deprecated()::summarize($rows);
 		$snapshots = [];
 		foreach ($rows as $row) {
 			$audit = $row['result']['audit'] ?? null;
@@ -28,19 +26,12 @@ class Overview {
 	}
 
 	public static function score(array $rows): int|false {
-		if (!class_exists('\\ficms\\Assessment')) return self::deprecated()::score($rows);
 		$categories = self::categories($rows);
 		return $categories ? \ficms\Assessment::score(array_values($categories)) : false;
 	}
 
 	public static function metrics(array $overview, string $language): array {
-		if (!class_exists('\\ficms\\Assessment')) return self::deprecated()::metrics($overview,$language);
 		return \ficms\Assessment::metrics($overview,$language,'accessibility');
-	}
-
-	private static function deprecated(): string {
-		require_once PLUGINPATH.'/fiCMS-accessibility/deprecated/src/Overview.php';
-		return DeprecatedOverview::class;
 	}
 
 	private static function categories(array $rows): array {

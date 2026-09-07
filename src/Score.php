@@ -4,10 +4,6 @@ namespace accessibility;
 
 class Score {
 	public static function aggregate(array $scores): array|false {
-		if (!class_exists('\\ficms\\Assessment')) {
-			require_once PLUGINPATH.'/fiCMS-accessibility/deprecated/src/Score.php';
-			return DeprecatedScore::aggregate($scores);
-		}
 		if (array_diff(Config::CATEGORIES,array_keys($scores)) || array_diff(array_keys($scores),Config::CATEGORIES)) return false;
 		$result = ['categories'=>[],'score'=>100,'total'=>0,'success'=>0,'warning'=>0,'error'=>0];
 		foreach ($scores as $category => $values) {

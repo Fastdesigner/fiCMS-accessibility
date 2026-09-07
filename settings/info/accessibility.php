@@ -1,9 +1,5 @@
 <?php
 
-if (!file_exists(DESIGNSYSTEM.'/assets/js/admin/sys.js')) {
-	require PLUGINPATH.'/fiCMS-accessibility/deprecated/settings/info/accessibility.php';
-	return;
-}
 if (!$site['onsite']) return;
 
 if (isset($_POST['accessibility_result'])) {
