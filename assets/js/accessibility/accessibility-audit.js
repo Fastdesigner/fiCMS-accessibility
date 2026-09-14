@@ -401,7 +401,7 @@ async function accessibility__contrast_capture(elements,states) {
 			group.elements.forEach(source => {
 				if (!Array.from(source.childNodes).some(node => node.nodeType === Node.TEXT_NODE && node.nodeValue.trim())) return;
 				let obj = stage.target(source), colors = helper__get_contrast_colors(obj), rects = accessibility__text_rects(obj);
-				if (!rects.length || (typeof obj.checkVisibility === 'function' && !obj.checkVisibility({checkOpacity:true,checkVisibilityCSS:true}))) return;
+				if (!rects.length || !obj.checkVisibility({checkOpacity:true,checkVisibilityCSS:true})) return;
 				fiCMS.accessibility.contrastColors.set(source,colors);
 				if (!colors.complex.length) return;
 				let root = stage.root || accessibility__contrast_root(obj);
@@ -561,7 +561,7 @@ function accessibility__init_navigatability(el,source = el,stage = false) {
 		// werten - fokussierbare Scrollregionen ([tabindex] ohne Widget-Rolle) duerfen Links enthalten
 		if (source.matches('a, button, summary, select, textarea, [role="button"], [role="link"], [role="tab"], [role="switch"], [role="checkbox"], [role="menuitem"]')) {
 			let nested = Array.from(source.querySelectorAll('a[href], button, input, select, textarea, summary, [tabindex]:not([tabindex^="-"])'))
-				.find(node => typeof node.checkVisibility !== 'function' || node.checkVisibility());
+				.find(node => node.checkVisibility());
 			if (nested) return { status: "error", reason: "_accessibility_nested_interactive", value: nested.tagName.toLowerCase() };
 		}
 		let style = window.getComputedStyle(el), tag = source.tagName.toLowerCase(), sourceLabel = document.querySelector(`label[for="${source.id}"]`) || source.closest("label"),
@@ -623,7 +623,7 @@ function accessibility__init_navigatability(el,source = el,stage = false) {
 		});
 
 			// Fokus setzen
-			let visible = typeof el.checkVisibility !== 'function' || el.checkVisibility();
+			let visible = el.checkVisibility();
 			if (visible) try { el.focus({ preventScroll: true, focusVisible:true }); } catch(e) {}
 			if (!visible || document.activeElement !== el) return visible ? { status: "warning", reason: "_accessibility_focus_not_focusable" } : { status: "ignored" };
 
@@ -636,7 +636,7 @@ function accessibility__init_navigatability(el,source = el,stage = false) {
 function accessibility__init_readability(el,source = el) {
 	let textNodes = [...el.childNodes].filter(n => n.nodeType === Node.TEXT_NODE && n.nodeValue.trim().length);
 	if (!textNodes.length) return {status: "ignored"};
-	if (!accessibility__text_rects(el).length || (typeof el.checkVisibility === 'function' && !el.checkVisibility({checkOpacity:true,checkVisibilityCSS:true}))) return {status: "ignored"};
+	if (!accessibility__text_rects(el).length || !el.checkVisibility({checkOpacity:true,checkVisibilityCSS:true})) return {status: "ignored"};
 
 	// br- und Block-Grenzen zwischen den Textknoten sind Satzgrenzen — sonst verschmelzen
 	// Überschriften- und Adresszeilen ohne Satzzeichen zu Schein-Langsätzen
@@ -834,7 +834,7 @@ function accessibility__check_user_preferences(elements, scores, accessibility) 
 	scores.user_preferences = {total:0,success:0,warning:0,error:0};
 
 	elements.forEach(({obj}) => {
-		if (typeof obj.checkVisibility === 'function' && !obj.checkVisibility()) return;
+		if (!obj.checkVisibility()) return;
 		let result = accessibility__init_user_preferences(obj);
 		if (result.status === 'ignored') return;
 		scores.user_preferences.total++;
@@ -896,7 +896,7 @@ function accessibility__robustness_candidates(elements) {
 	let seen = new Set(), candidates = [];
 	elements.forEach(({obj}) => {
 		if (!obj || obj.nodeType !== 1 || seen.has(obj)) return;
-		if (typeof obj.checkVisibility === 'function' && !obj.checkVisibility()) return;
+		if (!obj.checkVisibility()) return;
 		if (!accessibility__text_rects(obj).length) return;
 		let clip = accessibility__clipping_ancestor(obj);
 		if (!clip) return;
@@ -958,8 +958,8 @@ function accessibility__check_text_robustness(elements, scores, accessibility) {
 
 function accessibility__init_headlines(el) {
 	if (el.closest("dialog")) return { status: "ignored" };
-    let level = parseInt(el.tagName.charAt(1)), style = window.getComputedStyle(el), text = el.innerText.trim();
-    if (style.visibility === "hidden") return { status: "ignored" }; // Unsichtbare Überschriften ignorieren
+    let level = parseInt(el.tagName.charAt(1)), text = el.innerText.trim();
+    if (!el.checkVisibility({visibilityProperty:true})) return { status: "ignored" }; // Unsichtbare Überschriften ignorieren
 
     // **Level speichern (wichtig für die spätere Prüfung)**
     fiCMS.accessibility.headline.level.push(level);

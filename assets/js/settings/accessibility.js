@@ -9,8 +9,7 @@ function accessibility__report_find(event) {
 	let selector = obj.getAttribute('data-selector');
 	let target = document.querySelector(selector);
 	if (!target) return false;
-	let style = getComputedStyle(target);
-	if (style.display === 'none') target = target.parentNode;
+	if (!target.checkVisibility()) target = target.parentNode;
 	helper__scroll_to(target,500);
 	target.removeClassOnAnimationEnd('highlight');
 	target.focus();
