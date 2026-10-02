@@ -7,7 +7,7 @@ $accessibilityLayoutJob = [
 	'job'=>[],
 	'rows'=>[]
 ];
-if (!str_starts_with($accessibilityLayoutJob['key'],'accessibility-')) { unset($accessibilityLayoutJob); return; }
+if ($accessibilityLayoutJob['key'] !== 'accessibility' && !str_starts_with($accessibilityLayoutJob['key'],'accessibility-')) { unset($accessibilityLayoutJob); return; }
 $accessibilityLayoutJob['job'] = \ficms\Jobs::openLayoutJobs(true)[$accessibilityLayoutJob['key']] ?? [];
 if (!$accessibilityLayoutJob['job'] || ($accessibilityLayoutJob['job']['state'] ?? '') === 'resolved') { unset($accessibilityLayoutJob); return; }
 $accessibilityLayoutJob['rows'] = \accessibility\Repository::rows();

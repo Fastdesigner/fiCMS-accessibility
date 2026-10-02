@@ -37,3 +37,9 @@ skill("accessibility")
 ```
 
 The responses expose stored audit coverage, freshness and limitations so agents can distinguish an automated sampled finding from a compliance statement.
+
+## Resolution requests
+
+The paid resolution button announces the checker-backed layout job `accessibility` to fiCMS-api. fiCRM creates the associated ticket and agent work through its regular layout-job intake and applies the maintenance-contract approval rule.
+
+The working instruction is maintained centrally in fiCRM under the job key `accessibility`. The plugin writes no instruction or report snapshot into the customer layout. Agents read the current findings through the installation's `accessibility` MCP readers. Each new request sets a new creation timestamp so the checker requires fresh audits for that request. Existing open `accessibility-<hash>` jobs continue to prevent a duplicate request.
