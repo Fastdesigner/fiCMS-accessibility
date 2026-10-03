@@ -37,7 +37,7 @@ $accessibility['metrics']->statistics('score','pie',\accessibility\Overview::met
 	'data-value'=>round($accessibility['assessment']['score']),
 	'data-label'=>language__get($user['language'],'_accessibility_score')
 ]]);
-foreach ($accessibility['assessment']['total'] as $key => $value) $accessibility['metrics']->statistics($key,'info',['value'=>(int) $value,'label'=>language__get($user['language'],'_accessibility_'.$key)],['id'=>$settings['key'].'_accessibility_'.$key]);
+foreach ($accessibility['assessment']['total'] as $accessibility['key'] => $accessibility['value']) $accessibility['metrics']->statistics($accessibility['key'],'info',['value'=>(int) $accessibility['value'],'label'=>language__get($user['language'],'_accessibility_'.$accessibility['key'])],['id'=>$settings['key'].'_accessibility_'.$accessibility['key']]);
 $accessibility['findings'] = $accessibility['overview_tab']->listing('findings',['kind'=>'wrapper']);
 if ($accessibility['ui']->assessmentFindings($accessibility['findings'],$accessibility['assessment']) == 0) $accessibility['findings']->text('empty',language__get(
 	$user['language'],
