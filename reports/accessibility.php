@@ -78,6 +78,19 @@ foreach ($reports['recipients'] as $accessibility['email'] => $accessibility['va
 	}
 	if ($accessibility['rows']) $accessibility['list'][] = ['feature'=>'bars','data'=>['titlekey'=>'_accessibility_statistics_page_scores','title'=>'','value'=>'','valuecolor'=>'','delta'=>'','row'=>$accessibility['rows']]];
 
+	foreach ($accessibility['notify_types'] as $accessibility['severity']) foreach ($accessibility['overview']['findings'][$accessibility['severity']] as $accessibility['rule'] => $accessibility['entries']) {
+		$accessibility['items'] = [];
+		foreach ($accessibility['entries'] as $accessibility['entry']) $accessibility['items'][] = reports__issue_item($accessibility['lang'],$accessibility['rule'],$accessibility['entry']);
+		$accessibility['list'][] = ['feature'=>'issue','data'=>[
+			'border'=>$accessibility['severity'] === 'error' ? '#c62828' : '#f57c00',
+			'titlekey'=>$accessibility['rule'].'_headline','desckey'=>$accessibility['rule'],'item'=>$accessibility['items']
+		]];
+	}
+	if (\ficms\Assessment::hasFindings($accessibility['overview'])) $accessibility['list'][] = ['feature'=>'cta','data'=>[
+		'labelkey'=>'_reports_resolve_button','desckey'=>'_reports_resolve_description',
+		'href'=>htmlspecialchars(\ficms\Assessment::resolutionUrl('accessibility',$accessibility['overview']['last']),ENT_QUOTES,'UTF-8')
+	]];
+
 	$reports['items'][$accessibility['email']] = ['list'=>$accessibility['list']];
 }
 

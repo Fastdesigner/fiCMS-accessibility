@@ -26,7 +26,6 @@ if (!\accessibility\License::allowed()) {
 if (!\accessibility\Repository::available()) return;
 
 $accessibility['assessment'] = \accessibility\Overview::current();
-if (isset($_POST['settings'],$_POST['type'],$_POST['action']) && $_POST['type'] == $settings['key'] && $_POST['action'] === 'request_resolution') $settings['output']['result'] = \accessibility\LayoutJob::request($user['language']);
 if (isset($_POST['settings'],$_POST['type'],$_POST['action']) && $_POST['type'] == $settings['key'] && $_POST['action'] === 'request_reaudit') $settings['output']['result'] = ['result'=>\accessibility\Repository::requestReaudit()];
 $accessibility['active_job'] = \accessibility\LayoutJob::active();
 $accessibility['ui'] = new \ficms\Ui($settings['key'],'accessibility',$user['language']);
@@ -87,13 +86,13 @@ if (!$accessibility['statistics_data']['days']) {
 }
 $accessibility['resolve_tab'] = $accessibility['ui']->tab('resolve',['label'=>language__get($user['language'],'_accessibility_tab_resolve')]);
 $accessibility['resolve_tab']->text('resolve-intro',language__get($user['language'],'_accessibility_resolve_intro'));
-$accessibility['resolve_tab']->text('resolve-service',language__get($user['language'],'_accessibility_resolve_service'));
+$accessibility['resolve_tab']->text('resolve-service',language__get($user['language'],'_reports_resolve_description'));
 $accessibility['resolve_tab']->text('resolve-maintenance',language__get($user['language'],'_accessibility_resolve_maintenance'));
 if ($accessibility['active_job']) $accessibility['resolve_tab']->text('resolve-active',language__get($user['language'],'_accessibility_resolve_active'));
-else if (\accessibility\LayoutJob::hasFindings($accessibility['assessment'])) $accessibility['resolve_tab']->button('resolve-button',[
-	'label'=>language__get($user['language'],'_accessibility_resolve_button'),
-	'action'=>'request_resolution',
-	'confirm'=>language__get($user['language'],'_accessibility_resolve_confirm')
+else if (\ficms\Assessment::hasFindings($accessibility['assessment'])) $accessibility['resolve_tab']->link('resolve-button',[
+	'label'=>language__get($user['language'],'_reports_resolve_button'),
+	'href'=>\ficms\Assessment::resolutionUrl('accessibility',$accessibility['assessment']['last']),
+	'kind'=>'button','target'=>'_blank','rel'=>'noopener'
 ]);
 else $accessibility['resolve_tab']->text('resolve-no-findings',language__get($user['language'],'_accessibility_resolve_no_findings'));
 $accessibility['ui']->emit($settings);

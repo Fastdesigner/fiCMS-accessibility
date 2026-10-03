@@ -4,7 +4,7 @@
   "type": "thirdparty",
   "system": false,
   "description": "Automated accessibility audits, health scores and reports for fiCMS.",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "autoload": {
     "psr-4": {
       "accessibility\\": "src/"
@@ -12,6 +12,7 @@
   },
   "requires": [
     "ficms\\Ui\\Node::dialog",
-    "ficms\\Runtime::check"
+    "ficms\\Runtime::check",
+    "ficms\\Assessment::resolutionUrl"
   ]
 }
