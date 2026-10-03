@@ -88,7 +88,7 @@ foreach ($reports['recipients'] as $accessibility['email'] => $accessibility['va
 	}
 	if (\ficms\Assessment::hasFindings($accessibility['overview'])) $accessibility['list'][] = ['feature'=>'cta','data'=>[
 		'labelkey'=>'_reports_resolve_button','desckey'=>'_reports_resolve_description',
-		'href'=>htmlspecialchars(\ficms\Assessment::resolutionUrl('accessibility',$accessibility['overview']['last']),ENT_QUOTES,'UTF-8')
+		'href'=>htmlspecialchars(\ficms\Assessment::resolutionUrl($accessibility['email']),ENT_QUOTES,'UTF-8')
 	]];
 
 	$reports['items'][$accessibility['email']] = ['list'=>$accessibility['list']];

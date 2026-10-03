@@ -91,7 +91,7 @@ $accessibility['resolve_tab']->text('resolve-maintenance',language__get($user['l
 if ($accessibility['active_job']) $accessibility['resolve_tab']->text('resolve-active',language__get($user['language'],'_accessibility_resolve_active'));
 else if (\ficms\Assessment::hasFindings($accessibility['assessment'])) $accessibility['resolve_tab']->link('resolve-button',[
 	'label'=>language__get($user['language'],'_reports_resolve_button'),
-	'href'=>\ficms\Assessment::resolutionUrl('accessibility',$accessibility['assessment']['last']),
+	'href'=>\ficms\Assessment::resolutionUrl(),
 	'kind'=>'button','target'=>'_blank','rel'=>'noopener'
 ]);
 else $accessibility['resolve_tab']->text('resolve-no-findings',language__get($user['language'],'_accessibility_resolve_no_findings'));
