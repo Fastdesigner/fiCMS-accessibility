@@ -1,6 +1,6 @@
 (() => {
 	const service = document.currentScript;
-	if (!service || window.fiCMSAccessibilityRunning) return;
+	if (!service || window.fiCMSAccessibilityRunning || navigator.webdriver || fiCMS.vars.global.refresh_allowed === 0) return;
 	window.fiCMSAccessibilityRunning = true;
 
 	(async () => {
