@@ -19,6 +19,8 @@ function accessibility__test_focus() {
 	return result.forced && result.suppressed;
 }
 
+let accessibility__unreadable_stylesheets = new Set();
+
 function accessibility__collect_motion_preference_rules(preference) {
 	let collected = [], isPreference = condition => new RegExp('\\(\\s*prefers-reduced-motion\\s*:\\s*' + preference + '\\s*\\)','i').test(condition || '');
 	let collectStyles = rules => Array.from(rules || []).forEach(rule => {
@@ -44,7 +46,7 @@ function accessibility__collect_motion_preference_rules(preference) {
 	});
 
 	Array.from(document.styleSheets).forEach(sheet => {
-		try { collect(sheet.cssRules); } catch(e) {}
+		try { collect(sheet.cssRules); } catch(e) { accessibility__unreadable_stylesheets.add(String(sheet.href || 'inline stylesheet').split(/[?#]/)[0]); }
 	}); return collected;
 }
 
@@ -60,7 +62,7 @@ function accessibility__collect_motion_animation_names() {
 	};
 
 	Array.from(document.styleSheets).forEach(sheet => {
-		try { collect(sheet.cssRules); } catch(e) {}
+		try { collect(sheet.cssRules); } catch(e) { accessibility__unreadable_stylesheets.add(String(sheet.href || 'inline stylesheet').split(/[?#]/)[0]); }
 	}); return collected;
 }
 
@@ -175,7 +177,11 @@ function accessibility__motion_description(cs,hasAnimation,hasTransition) {
 	return descriptions.join('; ');
 }
 
+let accessibility__renderer = null;
+let accessibility__running = false;
+
 function accessibility__renderer_load() {
+	if (accessibility__renderer) return Promise.resolve(accessibility__renderer);
 	if (window.modernScreenshot) return Promise.resolve(window.modernScreenshot);
 	if (accessibility__renderer_load.promise) return accessibility__renderer_load.promise;
 	accessibility__renderer_load.promise = new Promise((resolve,reject) => {
@@ -503,7 +509,7 @@ function accessibility__style_hash(el) {
 	let s = window.getComputedStyle(el), combined = '';
 	let keys = ['outline', 'boxShadow', 'border', 'borderColor', 'borderWidth', 'filter', 'transform', 'background', 'backgroundColor', 'color', 'scale', 'opacity'];
 	for (let key of keys) combined += key + ':' + s[key] + ';';
-	return combined.hashCode();
+	return combined;
 }
 
 function accessibility__is_labeled(obj,recursion = true) {
@@ -1096,6 +1102,7 @@ function accessibility__elements(parent = document.body, elements = [], stateMap
 }
 
 async function accessibility__init() {
+	accessibility__unreadable_stylesheets = new Set();
 	if (!accessibility__test_focus()) throw new Error('Accessibility focus self-test failed');
 
 	fiCMS.accessibility = {
@@ -1125,7 +1132,10 @@ async function accessibility__init() {
 	let stats = {
 		totalElements: document.body ? document.body.querySelectorAll('*').length : 0,
 		collectedElements: elements.length,
-		checkRuns: 0
+		checkRuns: 0,
+		failedChecks: 0,
+		unreadableStylesheets: Array.from(accessibility__unreadable_stylesheets),
+		failures: []
 	};
 
 	for (let group of accessibility__state_groups(elements)) {
@@ -1153,7 +1163,10 @@ async function accessibility__init() {
 							}
 						}
 					} catch (error) {
-						// Elemente, die während des Audits aus dem DOM entfernt wurden, dürfen das Gesamt-Audit nicht abbrechen
+						// Detached elements and unsupported measurements do not abort other checks,
+						// but remain explicitly incomplete instead of becoming silent successes.
+						stats.failedChecks++;
+						if (stats.failures.length < 100) stats.failures.push({category:name,selector:accessibility__get_unique_selector(obj),reason:String(error?.message || error).slice(0,500)});
 					}
 				}
 			}));
@@ -1210,8 +1223,10 @@ async function accessibility__init() {
 	return result;
 }
 
-async function accessibility__start() {
-	if (!document.body || !document.body.hasAttribute('data-loaded')) await new Promise(resolve => document.addEventListener('ficms:loaded',resolve,{once:true}));
+async function accessibility__start(standalone = false) {
+	if (standalone) {
+		if (document.readyState === 'loading') await new Promise(resolve => document.addEventListener('DOMContentLoaded',resolve,{once:true}));
+	} else if (!document.body || !document.body.hasAttribute('data-loaded')) await new Promise(resolve => document.addEventListener('ficms:loaded',resolve,{once:true}));
 	// scroll zählt als Interaktion: Browser-Scroll-Restore, Anker-Sprünge und Scrollbar-Drag feuern keine wheel/pointer-Events;
 	// das Audit selbst scrollt nie (alle focus-Aufrufe mit preventScroll) — jede Positionsänderung ist extern und bleibt unangetastet
 	let active = document.activeElement, interacted = false,
@@ -1229,9 +1244,16 @@ async function accessibility__start() {
 }
 
 export const AccessibilityAudit = {
-	version:'0.1.3',
+	version:'0.1.4',
 	run(options = {}) {
 		if (options.document && options.document !== document) throw new Error('Accessibility audit document mismatch');
-		return accessibility__start();
+		if (accessibility__running) throw new Error('Accessibility audit already running');
+		if (options.renderer && typeof options.renderer.domToCanvas !== 'function') throw new Error('Accessibility renderer invalid');
+		accessibility__running = true;
+		accessibility__renderer = options.renderer || null;
+		return accessibility__start(options.standalone === true).finally(() => {
+			accessibility__renderer = null;
+			accessibility__running = false;
+		});
 	}
 };
